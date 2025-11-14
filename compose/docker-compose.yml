@@ -7,3 +7,9 @@ services:
     environment:
       - GENERIC_TIMEZONE=Australia/Sydney
     restart: unless-stopped
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
+# --- IGNORE ---
