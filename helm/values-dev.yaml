@@ -1,0 +1,33 @@
+imageRegistry: ""
+image:
+  repository: n8n-custom
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: n8n-dev-sa
+
+ingress:
+  enabled: true
+  className: nginx
+  host: n8n.local
+  tls: []
+
+pods:
+  frontend:
+    enabled: false
+
+  api:
+    replicas: 1
+    containers:
+      api:
+        image:
+          repository: n8n-custom
+          tag: latest
+        env:
+          GENERIC_TIMEZONE: "Australia/Sydney"
+          N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+          DB_TYPE: "sqlite"
+          DB_SQLITE_VACUUM_ON_STARTUP: "true"
+          N8N_BASIC_AUTH_ACTIVE: "true"
