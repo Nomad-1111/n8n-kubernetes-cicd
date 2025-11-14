@@ -86,3 +86,8 @@ volumes:
     persistentVolumeClaim:
       claimName: n8n-pvc
 
+serviceAccount:
+  create: true
+  name: n8n-dev-sa
+
+

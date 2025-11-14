@@ -1,7 +1,10 @@
+{{- if .Values.pods.api.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: n8n-dev-api
+  labels:
+    app: n8n-dev-api
 spec:
   replicas: {{ .Values.pods.api.replicas }}
   selector:
@@ -16,6 +19,7 @@ spec:
       containers:
         - name: api
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 5678
           env:
@@ -30,3 +34,4 @@ spec:
         - name: n8n-data
           persistentVolumeClaim:
             claimName: n8n-pvc
+{{- end }}
