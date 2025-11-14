@@ -5,7 +5,6 @@ FROM n8nio/n8n:latest
 
 # Copy custom entrypoint if needed
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["sh", "/entrypoint.sh"]
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["n8n"]
