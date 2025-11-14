@@ -3,7 +3,6 @@ kind: Service
 metadata:
   name: n8n-dev-api
 spec:
-  serviceAccountName: {{ .Values.serviceAccount.name }}
   type: {{ .Values.service.type }}
   selector:
     app: n8n-dev-api

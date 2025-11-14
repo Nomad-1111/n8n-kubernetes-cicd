@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: n8n
+  name: n8n-dev
   namespace: argocd
 spec:
   project: default
@@ -9,13 +9,10 @@ spec:
     repoURL: https://github.com/Nomad-1111/n8n.git
     targetRevision: HEAD
     path: helm
-    helm:
-      valueFiles:
-        - values-dev.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: default
   syncPolicy:
     automated:
-      prune: true
+      prune: false
       selfHeal: true

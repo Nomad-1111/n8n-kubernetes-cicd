@@ -49,7 +49,6 @@ pods:
     enabled: false            # Frontend disabled for dev; only API needed
 
   api:
-    enabled: true             # <--- Add this
     replicas: 1
     containers:
       api:
@@ -78,16 +77,9 @@ pods:
           - name: n8n-data
             mountPath: /home/node/.n8n
 
-# ----------------------------
 # Volumes for persistence
-# ----------------------------
 volumes:
   - name: n8n-data
     persistentVolumeClaim:
       claimName: n8n-pvc
-
-serviceAccount:
-  create: true
-  name: n8n-dev-sa
-
 
