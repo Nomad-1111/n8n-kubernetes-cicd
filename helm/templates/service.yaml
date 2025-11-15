@@ -1,15 +1,37 @@
+# ============================================================================
+# Kubernetes Service for n8n
+# ============================================================================
+# This template creates a Service resource that provides a stable network
+# endpoint for n8n pods. The service uses a selector to route traffic to
+# pods with matching labels.
+# ============================================================================
+
 apiVersion: v1
 kind: Service
 metadata:
+  # Service name - used by other resources to reference this service
   name: workflow-api-svc
+  # Standard Kubernetes labels for resource organization
   labels:
     {{- include "n8n.labels" . | nindent 4 }}
 spec:
+  # Service type: ClusterIP, NodePort, or LoadBalancer
+  # ClusterIP: Internal cluster access only (default, recommended)
+  # NodePort: Exposes service on each node's IP at a static port
+  # LoadBalancer: External load balancer (cloud provider specific)
   type: {{ .Values.service.type }}
+  
+  # Service ports - defines how traffic is routed to pods
   ports:
+    # External port - port exposed by the service
     - port: {{ .Values.service.port }}
+      # Target port - port on the pod containers (must match containerPort)
       targetPort: {{ .Values.service.targetPort }}
+  
+  # Pod selector - defines which pods this service routes traffic to
+  # Must match the labels on pods created by the deployment
   selector:
+    # Required: matches deployment pod template label
     app: n8n-api
+    # Standard Kubernetes labels for resource management
     {{- include "n8n.labels" . | nindent 4 }}
-

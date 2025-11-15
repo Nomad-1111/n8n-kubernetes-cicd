@@ -91,11 +91,15 @@ kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
 
 # For UAT environment (in another terminal)
 kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
+
+# For Prod environment (in another terminal)
+kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 ```
 
 Then access:
 - Dev: `http://localhost:5678`
 - UAT: `http://localhost:5679`
+- Prod: `http://localhost:5680`
 
 **Note**: Keep the PowerShell window open while using n8n. Press `Ctrl+C` to stop port-forwarding.
 
@@ -202,16 +206,39 @@ kubectl logs -n n8n-dev -l app=n8n-api
 
 ## Troubleshooting
 
-### Port-Forward Timeout
+### Port-Forward Timeout (FIXED)
 
-If port-forward times out for UAT or prod:
+**Status**: ✅ **RESOLVED** - All environments now accessible via port-forward
 
-**Symptoms**:
+**Previous Issue**:
+- Port-forward was timing out for UAT and prod environments
+- Service endpoints were empty (`<none>`)
+- Root cause: Pod labels didn't match service selector requirements
+
+**Fix Applied**:
+- Pod labels updated to include required Kubernetes standard labels:
+  - `app.kubernetes.io/name: n8n`
+  - `app.kubernetes.io/instance: n8n-<env>`
+  - `app.kubernetes.io/part-of: n8n`
+- Service endpoints now properly populated with pod IPs
+- Port-forwarding works for all three environments
+
+**Current Access**:
+```powershell
+# Dev (port 5678)
+kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
+# Access: http://localhost:5678
+
+# UAT (port 5679)
+kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
+# Access: http://localhost:5679
+
+# Prod (port 5680)
+kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
+# Access: http://localhost:5680
 ```
-error: timed out waiting for the condition
-```
 
-**Solutions**:
+**If port-forward still times out**:
 
 1. **Check service endpoints**:
    ```powershell
@@ -220,31 +247,22 @@ error: timed out waiting for the condition
    ```
    - Should show pod IPs, not empty
 
-2. **Verify service selector matches pod labels**:
+2. **Verify pod labels**:
    ```powershell
-   kubectl get svc -n n8n-uat workflow-api-svc -o yaml | findstr selector
-   kubectl get pods -n n8n-uat -o yaml | findstr labels -A 5
+   kubectl get pods -n n8n-uat -o jsonpath='{.items[0].metadata.labels}' | ConvertFrom-Json | Format-List
    ```
+   - Should include `app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/part-of`
 
-3. **Try direct pod port-forward** (bypass service):
+3. **Verify service selector**:
    ```powershell
-   # Get pod name
-   kubectl get pods -n n8n-uat
-   
-   # Port-forward directly to pod
-   kubectl port-forward -n n8n-uat <pod-name> 5679:5678
+   kubectl get svc -n n8n-uat workflow-api-svc -o yaml | Select-String -Pattern "selector:" -Context 0,5
    ```
+   - Should match pod labels
 
 4. **Check for network policies**:
    ```powershell
    kubectl get networkpolicies -n n8n-uat
    kubectl get networkpolicies -n n8n-prod
-   ```
-
-5. **Restart the service** (if needed):
-   ```powershell
-   kubectl delete svc -n n8n-uat workflow-api-svc
-   # Argo CD will recreate it, or manually apply helm chart
    ```
 
 ### Ingress Not Created
@@ -315,8 +333,17 @@ minikube service ingress-nginx -n ingress-nginx
 
 ```powershell
 # ⭐ Port forward (easiest for local PC - RECOMMENDED)
+# Dev
 kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
-# Then access: http://localhost:5678
+# Access: http://localhost:5678
+
+# UAT
+kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
+# Access: http://localhost:5679
+
+# Prod
+kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
+# Access: http://localhost:5680
 
 # Check if n8n pods are running
 kubectl get pods -n n8n-dev

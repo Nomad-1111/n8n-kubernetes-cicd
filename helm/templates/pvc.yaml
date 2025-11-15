@@ -1,16 +1,40 @@
+# ============================================================================
+# Persistent Volume Claim (PVC) for n8n Data Storage
+# ============================================================================
+# This template creates a PVC that provides persistent storage for n8n.
+# PVCs abstract the underlying storage implementation and provide a
+# consistent interface for requesting storage resources.
+# Only created if .Values.persistence.enabled is true.
+# ============================================================================
+
 {{- if .Values.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  # PVC name - referenced by deployment volumeMounts
   name: n8n-pvc
+  # Standard Kubernetes labels for resource organization
   labels:
     {{- include "n8n.labels" . | nindent 4 }}
 spec:
+  # Access modes define how the volume can be mounted
+  # ReadWriteOnce: Can be mounted as read-write by a single node
+  # ReadOnlyMany: Can be mounted read-only by many nodes
+  # ReadWriteMany: Can be mounted read-write by many nodes
   accessModes:
     - {{ .Values.persistence.accessMode }}
+  
+  # Storage resource requests
   resources:
     requests:
+      # Storage size - amount of storage to provision
+      # Examples: 1Gi, 5Gi, 10Gi
       storage: {{ .Values.persistence.size }}
+  
+  # Storage class - defines the type of storage to use
+  # null: Use default storage class
+  # "" (empty string): Use default storage class
+  # Specific name: Use named storage class (e.g., "fast-ssd", "standard")
   {{- if .Values.persistence.storageClass }}
   storageClassName: {{ .Values.persistence.storageClass }}
   {{- end }}

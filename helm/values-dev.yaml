@@ -1,53 +1,117 @@
+# ============================================================================
+# Helm Values - Development Environment
+# ============================================================================
+# This file contains configuration values for the development environment.
+# These values override the default values in the Helm chart templates.
+# This file is used when deploying to the 'develop' branch via Argo CD.
+# ============================================================================
+
 # ----------------------------
-# Service Account
+# Service Account Configuration
 # ----------------------------
+# ServiceAccount provides identity for pods to interact with Kubernetes API.
+# Required for pods that need to access Kubernetes resources or external APIs.
 serviceAccount:
+  # Create a new ServiceAccount (true) or use existing (false)
   create: true
+  # ServiceAccount name - must be unique within the namespace
   name: n8n-dev-sa
 
 # ----------------------------
-# App Settings
+# Application Settings
 # ----------------------------
+# General application configuration that affects n8n behavior.
+
+# Number of pod replicas to run
+# Development typically uses 1 replica for cost efficiency
 replicas: 1
+
+# Timezone for n8n workflows and scheduling
+# Format: Continent/City (e.g., Australia/Sydney, America/New_York, UTC)
+# Affects workflow execution times and scheduled triggers
 timezone: Australia/Sydney
 
 # ----------------------------
-# Image
+# Container Image Configuration
 # ----------------------------
+# Defines which Docker image to use and how to pull it.
 image:
+  # Docker image repository (without tag)
+  # Custom image built by GitHub Actions CI/CD pipeline
   repository: nomad1111/n8n-custom
+  # Image tag - matches branch name (develop, uat, main)
+  # GitHub Actions builds and tags images based on branch
   tag: develop
+  # Image pull policy: Always, IfNotPresent, or Never
+  # Always: Always pull latest (recommended for CI/CD to get latest builds)
+  # IfNotPresent: Only pull if not present locally (faster, but may use stale images)
   pullPolicy: Always
-  # Optional: imagePullSecrets for Docker Hub authentication (recommended to avoid rate limits)
+  
+  # Optional: Image pull secrets for private Docker registries
+  # Required if using private images or to avoid Docker Hub rate limits
+  # Create secret with: kubectl create secret docker-registry dockerhub-secret ...
+  # Then uncomment and specify secret name:
   # pullSecrets: ["dockerhub-secret"]
-  # Optional: Override command/args if needed
+  
+  # Optional: Override container entrypoint command
+  # Only needed if custom image requires different entrypoint
   # command: ["/docker-entrypoint.sh"]
+  
+  # Optional: Override container command arguments
+  # Only needed if custom image requires different arguments
   # args: ["start"]
 
 # ----------------------------
-# Ingress (optional)
+# Ingress Configuration
 # ----------------------------
+# Ingress provides external HTTP/HTTPS access to n8n.
+# Requires an ingress controller (e.g., NGINX, Cilium) installed in cluster.
 ingress:
+  # Enable/disable ingress resource creation
   enabled: true
+  # Ingress controller class name
+  # Must match installed ingress controller (nginx, cilium, traefik, etc.)
   className: nginx
+  # Hostname for accessing n8n
+  # For local development, add to hosts file: 127.0.0.1 n8n-dev.local
   host: n8n-dev.local
+  # Protocol: http or https
+  # Use http for local development, https for production
   protocol: http  # http or https
+  # TLS configuration (for HTTPS)
+  # Uncomment and configure for production with SSL certificates
   tls: []
 
 # ----------------------------
-# Service
+# Service Configuration
 # ----------------------------
+# Service provides stable network endpoint for n8n pods.
 service:
+  # Service type: ClusterIP (internal), NodePort, or LoadBalancer
+  # ClusterIP: Internal cluster access only (recommended for most cases)
   type: ClusterIP
+  # Service port - external port exposed by the service
   port: 5678
+  # Target port - port on the pod containers (must match n8n port)
   targetPort: 5678
 
 # ----------------------------
-# Persistence
+# Persistent Storage Configuration
 # ----------------------------
+# Persistent storage for n8n data (workflows, credentials, database).
+# Data persists across pod restarts and deployments.
 persistence:
+  # Enable/disable persistent volume creation
   enabled: true
+  # Storage class - null uses default, or specify custom storage class
+  # For local development (Docker Desktop), null typically uses local storage
   storageClass: null
+  # Access mode: ReadWriteOnce, ReadOnlyMany, or ReadWriteMany
+  # ReadWriteOnce: Single node read-write (most common)
   accessMode: ReadWriteOnce
+  # Storage size - amount of disk space allocated
+  # Development typically uses smaller storage (1Gi)
   size: 1Gi
+  # Mount path - where data is stored in the container
+  # This is n8n's home directory containing workflows and credentials
   mountPath: /home/node/.n8n

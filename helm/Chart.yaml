@@ -1,6 +1,22 @@
+# ============================================================================
+# Helm Chart Metadata
+# ============================================================================
+# This file defines metadata about the Helm chart, including name, version,
+# and description. Helm uses this information to identify and manage the chart.
+# ============================================================================
+
 apiVersion: v2
+# Chart name - used to identify this chart
 name: n8n
+# Chart description - brief description of what this chart deploys
 description: n8n Helm Chart
+# Chart type: application or library
+# application: Deploys a full application (default)
+# library: Provides reusable templates for other charts
 type: application
+# Chart version - follows semantic versioning (major.minor.patch)
+# Increment when making changes to the chart itself
 version: 1.0.0
+# Application version - version of n8n being deployed
+# Should match the version of the n8n application
 appVersion: "1.0.0"
