@@ -109,9 +109,14 @@ service:
 # ----------------------------
 # Persistent Storage Configuration
 # ----------------------------
+# Persistent storage for n8n data (workflows, credentials, database).
+# Data persists across pod restarts and deployments.
 persistence:
   enabled: true
-  storageClass: null
+  # Storage class - must match existing PVC (storageClass is immutable)
+  # Existing PVC was created with "standard", so we must keep it
+  # WARNING: Changing this value requires deleting and recreating the PVC
+  storageClass: "standard"
   accessMode: ReadWriteOnce
   size: 1Gi
   mountPath: /home/node/.n8n

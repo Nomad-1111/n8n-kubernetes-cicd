@@ -24,9 +24,13 @@ spec:
   selector:
     matchLabels:
       # Required label for service selector matching
+      # IMPORTANT: Only include stable labels in selector (selectors are immutable)
+      # Do NOT include app.kubernetes.io/instance as it's release-specific
       app: n8n-api
-      # Standard Kubernetes labels for resource management
-      {{- include "n8n.labels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "n8n.name" . }}
+      app.kubernetes.io/part-of: n8n
+      # Note: app.kubernetes.io/instance is excluded from selector to prevent
+      # immutable field errors when release name changes
   
   # Pod template - defines the specification for pods created by this deployment
   template:

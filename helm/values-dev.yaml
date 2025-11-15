@@ -150,9 +150,11 @@ service:
 persistence:
   # Enable/disable persistent volume creation
   enabled: true
-  # Storage class - null uses default, or specify custom storage class
-  # For local development (Docker Desktop), null typically uses local storage
-  storageClass: null
+  # Storage class - must match existing PVC (storageClass is immutable)
+  # Existing PVC was created with "standard", so we must keep it
+  # WARNING: Changing this value requires deleting and recreating the PVC
+  # For local development (Docker Desktop), "standard" is typically the default
+  storageClass: "standard"
   # Access mode: ReadWriteOnce, ReadOnlyMany, or ReadWriteMany
   # ReadWriteOnce: Single node read-write (most common)
   accessMode: ReadWriteOnce
