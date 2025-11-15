@@ -1,0 +1,66 @@
+name: CI/CD: Build & Deploy n8n
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - prod
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${DOCKER_USERNAME}/n8n-custom:${GITHUB_REF_NAME} ./compose
+
+      - name: Push Docker image
+        run: |
+          docker push ${DOCKER_USERNAME}/n8n-custom:${GITHUB_REF_NAME}
+
+      - name: Update Helm values file
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then FILE=helm/values-dev.yaml; fi
+          if [[ "${GITHUB_REF_NAME}" == "uat" ]]; then FILE=helm/values-uat.yaml; fi
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then FILE=helm/values-prod.yaml; fi
+          sed -i "s|tag: .*|tag: ${GITHUB_REF_NAME}|" $FILE
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/
+
+      - name: Login to Argo
+        run: |
+          argocd login localhost:8080 \
+            --username admin \
+            --password ${{ secrets.ARGO_PASSWORD }} \
+            --insecure
+
+      - name: Sync app
+        run: |
+          APP="n8n-prod"
+          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then APP="n8n-dev"; fi
+          if [[ "${GITHUB_REF_NAME}" == "uat" ]]; then APP="n8n-uat"; fi
+
+          argocd app sync $APP
+          argocd app wait $APP --health

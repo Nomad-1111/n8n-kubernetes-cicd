@@ -1,35 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
-  namespace: {{ .Values.namespace }}
+  name: n8n-api
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: n8n-api
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: n8n-api
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
-
       containers:
         - name: n8n
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 5678
           env:
-            {{- range .Values.env }}
-            - name: {{ .name }}
-              value: "{{ .value }}"
-            {{- end }}
-
+            - name: GENERIC_TIMEZONE
+              value: "{{ .Values.timezone }}"
+            - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+              value: "true"
+            - name: DB_TYPE
+              value: sqlite
+            - name: DB_SQLITE_VACUUM_ON_STARTUP
+              value: "true"
           volumeMounts:
             - name: n8n-data
-              mountPath: /home/node/.n8n
-
+              mountPath: {{ .Values.persistence.mountPath }}
       volumes:
         - name: n8n-data
           persistentVolumeClaim:

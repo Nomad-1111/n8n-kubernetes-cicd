@@ -1,35 +1,20 @@
+serviceAccountName: n8n-prod-sa
+replicas: 2
+timezone: Australia/Sydney
+
 image:
   repository: n8n-custom
-  tag: latest
+  tag: prod
   pullPolicy: IfNotPresent
-
-serviceAccount:
-  create: true
-  name: n8n-prod-sa
 
 ingress:
   enabled: true
   className: nginx
   host: n8n.mycompany.com
 
-service:
-  port: 5678
-  targetPort: 5678
-
 persistence:
   enabled: true
-  storageClass: ""
   accessMode: ReadWriteOnce
-  size: 1Gi
+  size: 5Gi
+  storageClass: ""
   mountPath: /home/node/.n8n
-
-pods:
-  api:
-    replicas: 1
-    containers:
-      api:
-        env:
-          - name: GENERIC_TIMEZONE
-            value: "Australia/Sydney"
-          - name: DB_TYPE
-            value: "sqlite"
