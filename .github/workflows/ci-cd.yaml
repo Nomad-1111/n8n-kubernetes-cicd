@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t n8n-custom:${{ github.ref_name }} -f docker/Dockerfile .
+          docker build -t n8n-custom:${{ github.ref_name }} -f docker/Dockerfile ./docker
 
       - name: Tag image for Docker Hub
         run: |
@@ -47,22 +47,31 @@ jobs:
           if [ "${{ github.ref_name }}" = "main" ]; then FILE="helm/values-prod.yaml"; fi
           echo "file=$FILE" >> $GITHUB_OUTPUT
 
-      - name: Update image tag in Helm values
+      - name: Update image in Helm values
         run: |
           FILE="${{ steps.selectfile.outputs.file }}"
-          echo "Updating tag inside $FILE"
+          echo "Updating image in $FILE"
           
-          # Update main image.tag
-          sed -i "s|tag: .*|tag: ${{ github.ref_name }}|" "$FILE"
-
-          # Also update nested pods.api.containers.api.image.tag
-          sed -i "s|repository: nomad1111/n8n-custom\n *tag: .*|repository: nomad1111/n8n-custom\n  tag: ${{ github.ref_name }}|" "$FILE"
+          # Update repository to use custom image
+          sed -i "s|repository:.*|repository: nomad1111/n8n-custom|" "$FILE"
+          
+          # Update tag
+          sed -i "s|tag:.*|tag: ${{ github.ref_name }}|" "$FILE"
+          
+          # Remove TODO comments if switching from official image
+          sed -i '/# TODO: Switch back to nomad1111/d' "$FILE"
+          sed -i '/# repository: nomad1111/d' "$FILE"
+          sed -i '/# tag:.*/d' "$FILE"
+          
+          # Verify the change
+          echo "Updated image configuration:"
+          grep -A 2 "image:" "$FILE" | head -3
 
       - name: Commit updated values
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "GitHub Actions"
 
-          git add helm/
-          git commit -m "Update Helm values for ${{ github.ref_name }} image" || echo "No changes"
+          git add "${{ steps.selectfile.outputs.file }}"
+          git diff --staged --quiet || git commit -m "chore: update ${{ github.ref_name }} image to nomad1111/n8n-custom:${{ github.ref_name }} [skip ci]"
           git push
