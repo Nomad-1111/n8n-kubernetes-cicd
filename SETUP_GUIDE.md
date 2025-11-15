@@ -827,7 +827,7 @@ After completing setup:
 1. **Read Documentation**:
    - `ACCESS_N8N.md` - How to access n8n
    - `CI_CD_PROCESS.md` - Understanding the CI/CD pipeline
-   - `OUTSTANDING_ISSUES.md` - Known issues and tasks
+   - `SECURITY_SCANNING.md` - Security scanning information
 
 2. **Configure CI/CD**:
    - Ensure GitHub secrets are set (Step 8)
@@ -855,7 +855,8 @@ If you encounter issues:
 
 2. **Check Documentation**:
    - `ACCESS_N8N.md` - Access and troubleshooting
-   - `OUTSTANDING_ISSUES.md` - Known issues
+   - `CI_CD_PROCESS.md` - CI/CD workflow and troubleshooting
+   - `SECURITY_SCANNING.md` - Security scanning and findings
 
 3. **Verify Setup**:
    - Re-run verification commands from each step
