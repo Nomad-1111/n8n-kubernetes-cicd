@@ -133,59 +133,72 @@ This repository includes automated security scanning to detect vulnerabilities:
 
 # ☸ Kubernetes Deployments via Helm
 
-### `helm/values-dev.yaml` example
+Each environment has its own Helm values file that configures the deployment:
+
+- **`helm/values-dev.yaml`** - Development environment configuration
+- **`helm/values-uat.yaml`** - UAT environment configuration  
+- **`helm/values-prod.yaml`** - Production environment configuration
+
+### Example Configuration (`helm/values-dev.yaml`)
 
 ```yaml
-imageRegistry: ""
+# Container Image Configuration
 image:
-  repository: n8n-custom
-  tag: "latest"
-  pullPolicy: IfNotPresent
+  repository: nomad1111/n8n-custom
+  tag: develop
+  pullPolicy: Always
 
-service:
-  port: 5678
+# Application Settings
+replicas: 1
+timezone: Australia/Sydney
 
+# Ingress Configuration
 ingress:
   enabled: true
-  className: cilium
+  className: nginx
   host: n8n-dev.local
+  protocol: http
+
+# Service Configuration
+service:
+  type: ClusterIP
+  port: 5678
+  targetPort: 5678
+
+# Persistent Storage
+persistence:
+  enabled: true
+  size: 1Gi
+  mountPath: /home/node/.n8n
 ```
+
+**See the actual values files for complete configuration options.**
 
 ---
 
 # 🚢 Argo CD Setup
 
-### Create the Argo CD App:
+Argo CD applications are already configured in the `argo/` directory:
 
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: n8n-dev
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/YOUR/repo.git
-    targetRevision: develop
-    path: helm
-    helm:
-      valueFiles:
-        - values-dev.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+- **`argo/n8n-dev.yaml`** - Development environment (watches `develop` branch)
+- **`argo/n8n-uat.yaml`** - UAT environment (watches `uat` branch)
+- **`argo/n8n-prod.yaml`** - Production environment (watches `main` branch)
+
+### Apply Argo CD Applications
+
+```bash
+# Apply all Argo CD applications
+kubectl apply -f argo/n8n-dev.yaml
+kubectl apply -f argo/n8n-uat.yaml
+kubectl apply -f argo/n8n-prod.yaml
 ```
 
-Apply it:
+Each application automatically:
+- Monitors the corresponding Git branch for changes
+- Syncs deployments when Helm values are updated
+- Maintains desired state with prune and self-heal enabled
 
-```sh
-kubectl apply -f argo-dev.yaml
-```
+**See `SETUP_GUIDE.md` for complete Argo CD installation and configuration.**
 
 ---
 
@@ -253,18 +266,27 @@ argo app get n8n-dev
 
 ---
 
-# 📦 Deployment Output
+# 📦 Verify Deployment
 
-You should see:
+After deployment, verify the pods are running:
 
+```bash
+# Check dev environment
+kubectl get pods -n n8n-dev
+
+# Check UAT environment
+kubectl get pods -n n8n-uat
+
+# Check production environment
+kubectl get pods -n n8n-prod
 ```
-n8n-custom:<commit-sha>
-```
 
-Running in Kubernetes:
+You should see pods using the custom image:
 
-```
-kubectl get pods -n default
+```bash
+# Check which image is deployed
+kubectl get deployment -n n8n-dev n8n-api -o jsonpath='{.spec.template.spec.containers[0].image}'
+# Output: nomad1111/n8n-custom:develop
 ```
 
 ---
@@ -300,12 +322,6 @@ http://n8n.yourdomain.com (prod)
 
 ---
 
-# 🖼 Architecture Diagram (PNG)
-
-![Pipeline Diagram](pipeline-diagram.png)
-
----
-
 # 🏁 Summary
 
 This repository now includes:
@@ -323,12 +339,27 @@ This repository now includes:
 
 # 📚 Documentation
 
-- **Setup Guide**: `SETUP_GUIDE.md` - **START HERE** - Complete installation guide from scratch
-- **CI/CD Process**: `CI_CD_PROCESS.md` - Automated image build and deployment
-- **Security Scanning**: `SECURITY_SCANNING.md` - CodeQL and Trivy security scanning guide
-- **Deployment Fixes**: `DEPLOYMENT_FIXES_SUMMARY.md` - All fixes applied
-- **Access Guide**: `ACCESS_N8N.md` - How to access n8n on local PC
-- **Outstanding Issues**: `OUTSTANDING_ISSUES.md` - Remaining tasks and issues
+Essential documentation for this project:
+
+- **`SETUP_GUIDE.md`** - **START HERE** - Complete step-by-step installation guide
+  - Install Docker Desktop, kubectl, Helm, Argo CD
+  - Configure GitHub and Docker Hub
+  - Deploy all environments
+
+- **`CI_CD_PROCESS.md`** - CI/CD workflow and branch promotion
+  - PR-based promotion workflow (develop → uat → main)
+  - Automated image build and deployment
+  - Troubleshooting guide
+
+- **`ACCESS_N8N.md`** - How to access n8n
+  - Port-forwarding instructions
+  - Ingress configuration
+  - Troubleshooting access issues
+
+- **`SECURITY_SCANNING.md`** - Security scanning information
+  - CodeQL and Trivy configuration
+  - Understanding scan results
+  - Security best practices
 
 ---
 
