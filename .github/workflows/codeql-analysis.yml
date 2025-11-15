@@ -50,7 +50,7 @@ jobs:
       # Step 2: Initialize CodeQL
       # Sets up CodeQL CLI and prepares for analysis
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           # If you don't specify a queries section, it uses the default set of queries
@@ -61,13 +61,13 @@ jobs:
       # CodeQL will attempt to build the code automatically
       # For n8n, this may not be necessary if we're just scanning config files
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
         continue-on-error: true  # Don't fail if build fails
 
       # Step 4: Perform CodeQL Analysis
       # Analyzes the code and generates results
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           # Upload results to GitHub Security tab
           upload: true
