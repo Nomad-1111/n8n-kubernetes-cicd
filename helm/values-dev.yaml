@@ -16,7 +16,7 @@ timezone: Australia/Sydney
 # ----------------------------
 image:
   repository: n8nio/n8n
-  tag: latest
+  tag: develop
   pullPolicy: Always
   # Optional: imagePullSecrets for private registries or Docker Hub authentication
   # pullSecrets: []
