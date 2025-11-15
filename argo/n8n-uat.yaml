@@ -8,7 +8,7 @@ spec:
 
   source:
     repoURL: https://github.com/Nomad-1111/n8n.git
-    targetRevision: develop
+    targetRevision: uat
     path: helm
     helm:
       valueFiles:

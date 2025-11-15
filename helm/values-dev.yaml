@@ -41,7 +41,7 @@ service:
 # ----------------------------
 persistence:
   enabled: true
-  storageClass: ""
+  storageClass: null
   accessMode: ReadWriteOnce
   size: 1Gi
   mountPath: /home/node/.n8n
