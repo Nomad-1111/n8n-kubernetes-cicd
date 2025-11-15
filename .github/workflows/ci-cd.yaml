@@ -105,8 +105,6 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
           # Additional options
           scanners: 'vuln,config,secret'
-          # Suppress version check notices
-          skip-version-check: 'true'
 
       # Step 7: Upload Trivy results to GitHub Security tab
       # Makes vulnerability findings visible in repository Security tab
