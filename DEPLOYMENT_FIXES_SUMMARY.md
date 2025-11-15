@@ -255,22 +255,26 @@ All environments now have:
 
 ## Outstanding Issues & Recommendations
 
-### 1. GitHub Actions Workflows (HIGH PRIORITY)
+### 1. GitHub Actions Workflows ✅ COMPLETED
 
-**Status**: Missing  
-**Impact**: No automated CI/CD pipeline
+**Status**: Implemented  
+**Impact**: Automated CI/CD pipeline now active
 
 **Description**:
-- README.md references GitHub Actions workflows (`.github/workflows/ci-dev.yaml`, `ci-uat.yaml`, `ci-prod.yaml`)
-- These files do not exist in the repository
-- Manual builds and deployments are required
+- GitHub Actions workflow (`.github/workflows/ci-cd.yaml`) has been created and configured
+- Automatically builds Docker images on push to `develop`, `uat`, or `main` branches
+- Pushes images to Docker Hub as `nomad1111/n8n-custom:<branch-name>`
+- Updates Helm values files automatically
+- Commits changes back to repository
+- Argo CD auto-syncs deployments
 
-**Recommendation**:
-- Create GitHub Actions workflows for each environment
-- Automate Docker image builds on branch pushes
-- Automate image pushes to Docker Hub with appropriate tags
-- Update Helm values files with new image tags
-- Consider using GitHub Container Registry (ghcr.io) as alternative
+**Setup Required**:
+- Add Docker Hub secrets to GitHub repository:
+  - `DOCKER_USERNAME` = `nomad1111`
+  - `DOCKER_PASSWORD` = Docker Hub access token
+- See `CI_CD_PROCESS.md` for detailed setup instructions
+
+**Status**: Workflow is ready, awaiting Docker Hub credentials
 
 ---
 
@@ -410,6 +414,10 @@ All environments now have:
 3. **7292068** - Fix n8n public URL configuration (WEBHOOK_URL, N8N_PROTOCOL)
 4. **8d25699** - Fix image pull failure - correct image tag and add pullSecrets support
 5. **d049615** - Update to use custom Docker Hub repository nomad1111/n8n-custom
+6. **671295e** - Temporarily use official n8n image for UAT and prod
+7. **f47071a** - Automate custom image build and deployment process
+8. **12e5a91** - Add n8n access guide for local PC deployment
+9. **b777e4c** - Add comprehensive deployment fixes summary document
 
 ---
 
@@ -436,21 +444,24 @@ After fixes, Argo CD should:
 
 ## Next Steps
 
-1. **Immediate**:
-   - Ensure CI/CD pipeline builds and pushes images to Docker Hub with correct tags
-   - Verify Argo CD syncs successfully after changes
-   - Test n8n deployment in dev environment
+1. **Immediate** (REQUIRED):
+   - ✅ CI/CD workflow created and configured
+   - ⚠️ **Add Docker Hub secrets to GitHub** (DOCKER_USERNAME, DOCKER_PASSWORD)
+   - Test workflow by pushing to develop/uat/main branch
+   - Verify images are built and pushed to Docker Hub
+   - Switch UAT/prod from official image to custom images once built
 
 2. **Short-term**:
-   - Create GitHub Actions workflows
-   - Set up Docker Hub authentication
-   - Update production domain configuration
+   - Update production domain configuration (currently placeholder)
+   - Set up Docker Hub authentication (imagePullSecrets) if rate limiting occurs
+   - Test port-forwarding for UAT and prod (currently timing out)
 
 3. **Long-term**:
-   - Implement resource limits
-   - Add health checks
-   - Consider database migration for production
+   - Implement resource limits and requests
+   - Add health checks (liveness/readiness probes)
+   - Consider database migration for production (PostgreSQL/MySQL)
    - Set up monitoring and alerting
+   - Configure TLS certificates for production ingress
 
 ---
 
