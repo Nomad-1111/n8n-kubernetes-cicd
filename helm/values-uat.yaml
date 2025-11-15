@@ -26,14 +26,11 @@ timezone: Australia/Sydney
 # ----------------------------
 image:
   # TEMPORARY: Using official n8n image until custom image is built
-  # TODO: Switch back to nomad1111/n8n-custom:uat once image is built and pushed
-  repository: n8nio/n8n
+  repository: nomad1111/n8n-custom
   tag: uat
   pullPolicy: Always
   
   # Custom image configuration (commented until image is available)
-  # repository: nomad1111/n8n-custom
-  # tag: uat
   
   # Optional: Image pull secrets for Docker Hub authentication
   # Recommended to avoid Docker Hub rate limits
