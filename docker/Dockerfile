@@ -7,4 +7,4 @@ FROM n8nio/n8n:latest
 #COPY entrypoint.sh /entrypoint.sh
 #ENTRYPOINT ["sh", "/entrypoint.sh"]
 
-CMD ["n8n"]
+#CMD ["n8n"]
