@@ -11,6 +11,8 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    permissions:
+      contents: write        # <--- REQUIRED so workflow can push Helm updates
 
     steps:
       - name: Checkout code
@@ -29,7 +31,6 @@ jobs:
         run: |
           docker build -t n8n-custom:${{ github.ref_name }} -f docker/Dockerfile .
 
-
       - name: Tag image for Docker Hub
         run: |
           docker tag n8n-custom:${{ github.ref_name }} nomad1111/n8n-custom:${{ github.ref_name }}
@@ -38,18 +39,31 @@ jobs:
         run: |
           docker push nomad1111/n8n-custom:${{ github.ref_name }}
 
-      - name: Update correct Helm values file
+      - name: Select correct Helm values file
+        id: selectfile
         run: |
           if [ "${{ github.ref_name }}" = "develop" ]; then FILE="helm/values-dev.yaml"; fi
           if [ "${{ github.ref_name }}" = "uat" ]; then FILE="helm/values-uat.yaml"; fi
           if [ "${{ github.ref_name }}" = "main" ]; then FILE="helm/values-prod.yaml"; fi
-          echo "Updating tag in $FILE"
+          echo "file=$FILE" >> $GITHUB_OUTPUT
+
+      - name: Update image tag in Helm values
+        run: |
+          FILE="${{ steps.selectfile.outputs.file }}"
+          echo "Updating tag inside $FILE"
+          
+          # Update main image.tag
           sed -i "s|tag: .*|tag: ${{ github.ref_name }}|" "$FILE"
+
+          # Also update nested pods.api.containers.api.image.tag
+          sed -i "s|repository: nomad1111/n8n-custom\n *tag: .*|repository: nomad1111/n8n-custom\n  tag: ${{ github.ref_name }}|" "$FILE"
 
       - name: Commit updated values
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "GitHub Actions"
+
           git add helm/
           git commit -m "Update Helm values for ${{ github.ref_name }} image" || echo "No changes"
           git push
+
