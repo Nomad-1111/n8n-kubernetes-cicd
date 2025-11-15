@@ -5,17 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/Nomad-1111/n8n.git
-    targetRevision: HEAD
+    targetRevision: uat
     path: helm
     helm:
       valueFiles:
         - values-uat.yaml
+
   destination:
     server: https://kubernetes.default.svc
     namespace: n8n-uat
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
