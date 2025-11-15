@@ -16,9 +16,14 @@ spec:
       containers:
         - name: n8n
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 5678
           env:
+            - name: N8N_PORT
+              value: "5678"
+            - name: N8N_HOST
+              value: "0.0.0.0"
             - name: GENERIC_TIMEZONE
               value: "{{ .Values.timezone }}"
             - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
@@ -30,8 +35,10 @@ spec:
           volumeMounts:
             - name: n8n-data
               mountPath: {{ .Values.persistence.mountPath }}
+
       volumes:
         - name: n8n-data
           persistentVolumeClaim:
             claimName: n8n-pvc
+
 
