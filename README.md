@@ -295,7 +295,7 @@ kubectl get deployment -n n8n-dev n8n-api -o jsonpath='{.spec.template.spec.cont
 
 ### Local PC Deployment (Recommended):
 
-**Port-Forward** (easiest method):
+**Port-Forward** ⭐ **RECOMMENDED FOR DOCKER DESKTOP** (easiest and most reliable):
 ```powershell
 # Dev
 kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
@@ -310,7 +310,11 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 # Access: http://localhost:5680
 ```
 
-### Through Ingress (requires hosts file):
+**Helper Script**: Run `.\start-n8n-port-forwards.ps1` to start all port-forwards automatically.
+
+### Through Ingress (⚠️ May Not Work on Docker Desktop):
+
+**Note**: On Docker Desktop, ingress URLs may timeout due to port 80 accessibility limitations. Port-forwarding is recommended instead.
 
 ```
 http://n8n-dev.local
@@ -318,7 +322,7 @@ http://n8n-uat.local
 http://n8n.yourdomain.com (prod)
 ```
 
-**See `ACCESS_N8N.md` for detailed access instructions and troubleshooting.**
+**See `ACCESS_N8N.md` for detailed access instructions, troubleshooting, and Docker Desktop limitations.**
 
 ---
 

@@ -614,7 +614,9 @@ kubectl get svc -n n8n-prod
 # Should all show: workflow-api-svc   ClusterIP   10.x.x.x   5678/TCP
 ```
 
-### Access n8n via Port-Forward
+### Access n8n via Port-Forward ⭐ RECOMMENDED FOR DOCKER DESKTOP
+
+**Note**: On Docker Desktop, ingress URLs (`http://n8n-dev.local`) may not work due to port 80 limitations. Port-forwarding is the most reliable method.
 
 ```powershell
 # Dev environment (in separate terminal)
@@ -629,6 +631,10 @@ kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
 kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 # Access: http://localhost:5680
 ```
+
+**Helper Script**: A helper script `start-n8n-port-forwards.ps1` is available in the repository root to start all port-forwards automatically.
+
+**See `ACCESS_N8N.md` for detailed access instructions and Docker Desktop limitations.**
 
 ### Verify n8n is Working
 

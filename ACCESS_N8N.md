@@ -2,13 +2,19 @@
 
 ## Problem
 
-When trying to access `n8n-dev.local`, you get:
+When trying to access `n8n-dev.local`, you may get:
 ```
 DNS_PROBE_FINISHED_NXDOMAIN
 This site can't be reached
 ```
+or
+```
+n8n-dev.local took too long to respond
+```
 
-This is because `.local` domains are not automatically resolved by DNS. Since you're deploying on your local PC, you need to configure your system to resolve them.
+**Root Cause**: On Docker Desktop, port 80 is typically not accessible, which prevents ingress URLs from working even with proper hosts file configuration. This is a known Docker Desktop limitation.
+
+**Solution**: Use port-forwarding (Option 2) - it's the most reliable method for Docker Desktop and works immediately without any configuration.
 
 ---
 
@@ -29,7 +35,11 @@ Then open your browser and go to: **http://localhost:5678**
 
 ## Solution Options
 
-### Option 1: Add to Windows Hosts File (Recommended for Local Development)
+### Option 1: Add to Windows Hosts File (⚠️ May Not Work on Docker Desktop)
+
+**⚠️ Important**: On Docker Desktop, port 80 is typically not accessible, so ingress URLs (`http://n8n-dev.local`) may timeout even with proper hosts file configuration. **Use Option 2 (Port-Forward) instead** for reliable access.
+
+If you still want to try ingress access:
 
 1. **Open Notepad as Administrator**:
    - Press `Win + X`
@@ -40,50 +50,28 @@ Then open your browser and go to: **http://localhost:5678**
    - Navigate to: `C:\Windows\System32\drivers\etc\hosts`
    - Open with Notepad
 
-3. **Add the following lines** (replace `<INGRESS_IP>` with your ingress controller IP):
-   ```
-   <INGRESS_IP>  n8n-dev.local
-   <INGRESS_IP>  n8n-uat.local
-   ```
-
-4. **Find your Ingress Controller IP** (for Docker Desktop on local PC):
-   
-   **For Docker Desktop Kubernetes:**
-   ```powershell
-   # Check if ingress controller is installed
-   kubectl get svc -A | findstr ingress
-   
-   # If not installed, install it:
-   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
-   
-   # Get the ingress controller IP (usually localhost or 127.0.0.1 for Docker Desktop)
-   kubectl get svc -n ingress-nginx ingress-nginx-controller
-   ```
-   
-   **For Docker Desktop, the IP is usually:**
-   - `127.0.0.1` or `localhost` (if using NodePort)
-   - Check the EXTERNAL-IP column in the service output
-   
-   **Alternative - Use localhost directly:**
+3. **Add the following lines**:
    ```
    127.0.0.1  n8n-dev.local
    127.0.0.1  n8n-uat.local
    ```
 
-5. **Save the file** (you may need to save as "All Files" type)
+4. **Save the file** (you may need to save as "All Files" type)
 
-6. **Flush DNS cache**:
+5. **Flush DNS cache**:
    ```powershell
    ipconfig /flushdns
    ```
 
-7. **Access n8n**: `http://n8n-dev.local`
+6. **Test access**: `http://n8n-dev.local`
+   - ⚠️ If this times out, port 80 is not accessible (Docker Desktop limitation)
+   - ✅ Use Option 2 (Port-Forward) instead - it works reliably
 
 ---
 
-### Option 2: Use kubectl Port-Forward (Quick Access) ⭐ RECOMMENDED FOR LOCAL PC
+### Option 2: Use kubectl Port-Forward (Quick Access) ⭐ **RECOMMENDED FOR DOCKER DESKTOP**
 
-This bypasses ingress and directly forwards the service port. **This is the easiest method for local development:**
+This bypasses ingress and directly forwards the service port. **This is the most reliable method for Docker Desktop and works immediately without any configuration:**
 
 ```powershell
 # For dev environment
@@ -104,6 +92,8 @@ Then access:
 **Note**: Keep the PowerShell window open while using n8n. Press `Ctrl+C` to stop port-forwarding.
 
 **Pro Tip**: You can run multiple port-forwards in separate terminal windows for different environments.
+
+**Helper Script**: A helper script `start-n8n-port-forwards.ps1` is available in the repository root to start all port-forwards automatically.
 
 ---
 
@@ -305,27 +295,48 @@ minikube service ingress-nginx -n ingress-nginx
 
 **Note**: For local PC development, **port-forwarding (Option 2) is usually easier** than setting up ingress.
 
-### Can't Access After Adding to Hosts File
+### Can't Access After Adding to Hosts File (Docker Desktop Issue)
+
+**Common Issue**: On Docker Desktop, `http://n8n-dev.local` times out even with correct hosts file configuration.
+
+**Root Cause**: Port 80 is not accessible on Docker Desktop, which prevents ingress from working.
+
+**Solution**: Use port-forwarding instead (Option 2). It's more reliable and works immediately:
+
+```powershell
+kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
+# Then access: http://localhost:5678
+```
+
+**If you still want to troubleshoot ingress**:
 
 1. **Verify hosts file syntax**:
    - No extra spaces
    - IP address first, then hostname
    - One entry per line
+   - Should use `127.0.0.1` not `192.168.x.x`
 
-2. **Check if IP is correct**:
+2. **Check if DNS resolves**:
    ```powershell
    ping n8n-dev.local
-   # Should resolve to the IP you added
+   # Should resolve to 127.0.0.1
    ```
 
-3. **Try accessing with IP directly**:
+3. **Check if port 80 is accessible**:
    ```powershell
-   curl -H "Host: n8n-dev.local" http://<INGRESS_IP>
+   Test-NetConnection -ComputerName localhost -Port 80
+   # If this fails, port 80 is not accessible (Docker Desktop limitation)
    ```
 
 4. **Check Windows Firewall**:
    - May be blocking connections
    - Temporarily disable to test
+
+5. **Verify ingress controller is running**:
+   ```powershell
+   kubectl get pods -n ingress-nginx
+   kubectl get svc -n ingress-nginx ingress-nginx-controller
+   ```
 
 ---
 
@@ -403,23 +414,62 @@ kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
 Then access: `http://localhost:5678`
 
 ### For Production-Like Testing:
-**Use Option 1 (Hosts File)** + Ingress:
+**Note**: On Docker Desktop, ingress URLs may not work due to port 80 limitations. Port-forwarding is still recommended.
+
+If you need to test ingress configuration:
 1. Install ingress controller (if not already installed)
 2. Add entries to hosts file pointing to `127.0.0.1`
-3. Access via `http://n8n-dev.local`
+3. Access via `http://n8n-dev.local` (may timeout on Docker Desktop)
+4. If it times out, use port-forwarding instead
 
-### Why Port-Forward is Better for Local PC:
+### Why Port-Forward is Better for Docker Desktop:
+- ✅ Works immediately - no configuration needed
 - ✅ No need to install/configure ingress controller
 - ✅ No need to modify hosts file
-- ✅ Works immediately
 - ✅ No DNS issues
+- ✅ No port 80 accessibility problems
 - ✅ Can run multiple environments on different ports
+- ✅ Most reliable method for Docker Desktop
 
 ### When to Use Ingress on Local PC:
 - Testing ingress configuration before production
 - Testing TLS/SSL certificates
 - Testing domain-based routing
 - Multiple services that need proper routing
+
+---
+
+## Helper Script
+
+A PowerShell helper script is available to start port-forwards for all environments:
+
+```powershell
+# Run from repository root
+.\start-n8n-port-forwards.ps1
+```
+
+This script will:
+- Start port-forward for dev environment (port 5678)
+- Start port-forward for UAT environment (port 5679)
+- Start port-forward for prod environment (port 5680)
+- Open separate PowerShell windows for each
+
+Then access:
+- Dev: `http://localhost:5678`
+- UAT: `http://localhost:5679`
+- Prod: `http://localhost:5680`
+
+---
+
+## Docker Desktop Limitations
+
+**Important**: Docker Desktop has known limitations with ingress:
+
+1. **Port 80 Not Accessible**: Port 80 is typically not accessible on Docker Desktop, which prevents ingress URLs from working even with proper configuration.
+
+2. **Workaround**: Use port-forwarding (Option 2) - it's the most reliable method and works immediately.
+
+3. **Ingress Still Useful**: Ingress resources are still created and configured correctly - they just can't be accessed via port 80 on Docker Desktop. This is fine for development, and the configuration will work correctly in production Kubernetes clusters.
 
 ---
 
