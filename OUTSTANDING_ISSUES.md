@@ -314,6 +314,9 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 18. ✅ Added Trivy Docker image scanning to CI/CD pipeline
 19. ✅ Added comprehensive YAML comments to all configuration files
 20. ✅ Created complete setup guide for installation from scratch
+21. ✅ Implemented PR-based promotion workflow (develop → uat → main)
+22. ✅ Added PR validation (build, scan, validate Helm charts) before deployment
+23. ✅ Updated all documentation to reflect PR-based workflow
 
 ---
 
@@ -332,7 +335,7 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 ## 🎯 Immediate Action Items
 
 1. **Add Docker Hub secrets to GitHub** (CRITICAL - blocks CI/CD)
-2. **Test GitHub Actions workflow** (push to develop branch)
+2. **Test GitHub Actions workflow** (create PR to develop branch, then merge)
 3. **Verify custom images are built and pushed**
 4. **Update production domain** in values-prod.yaml
 5. **Review security scan results** in GitHub Security tab
