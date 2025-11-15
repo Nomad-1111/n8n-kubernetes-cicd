@@ -27,7 +27,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t n8n-custom:${{ github.ref_name }} ./compose
+          docker build -t n8n-custom:${{ github.ref_name }} -f Docker/Dockerfile .
+
 
       - name: Tag image for Docker Hub
         run: |
