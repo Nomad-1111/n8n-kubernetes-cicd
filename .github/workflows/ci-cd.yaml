@@ -4,17 +4,25 @@
 # This workflow automates the build, push, and deployment of n8n custom images.
 # It builds Docker images from the docker/Dockerfile, pushes them to Docker Hub,
 # and updates Helm values files to trigger Argo CD deployments.
+#
+# On Pull Requests: Validates code (builds image, scans, validates Helm charts)
+# On Push (after merge): Builds, pushes image, updates Helm values, and deploys
 # ============================================================================
 
 name: CI/CD Pipeline
 
-# Workflow triggers - runs on push to these branches
+# Workflow triggers - runs on push and pull requests to these branches
 on:
   push:
     branches:
       - develop  # Dev environment
       - uat      # UAT environment
       - main     # Production environment
+  pull_request:
+    branches:
+      - develop  # Validate PRs targeting develop
+      - uat      # Validate PRs targeting uat
+      - main     # Validate PRs targeting main
 
 # Job definitions
 jobs:
@@ -36,15 +44,34 @@ jobs:
       # Step 1: Checkout repository code
       - name: Checkout code
         uses: actions/checkout@v3
+        # For PRs, checkout the PR branch (source branch)
+        # For pushes, checkout the target branch
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
 
-      # Step 2: Set up Docker Buildx for building images
+      # Step 2: Determine branch name for image tagging and file selection
+      # For PRs: use source branch name (github.head_ref)
+      # For pushes: use target branch name (github.ref_name)
+      - name: Determine branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+          fi
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Using branch: $BRANCH_NAME"
+
+      # Step 3: Set up Docker Buildx for building images
       # Buildx provides advanced build features and better caching
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 3: Authenticate with Docker Hub
+      # Step 4: Authenticate with Docker Hub (only needed for push events)
       # Uses secrets stored in GitHub repository settings
       - name: Login to Docker Hub
+        if: github.event_name == 'push'
         uses: docker/login-action@v2
         with:
           # Docker Hub username (stored as GitHub secret)
@@ -52,20 +79,20 @@ jobs:
           # Docker Hub password/token (stored as GitHub secret)
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 4: Build Docker image from Dockerfile
+      # Step 5: Build Docker image from Dockerfile
       # Tags image with branch name for identification
       - name: Build Docker image
         run: |
-          docker build -t n8n-custom:${{ github.ref_name }} -f docker/Dockerfile ./docker
+          docker build -t n8n-custom:${{ steps.branch.outputs.branch }} -f docker/Dockerfile ./docker
 
-      # Step 5: Scan Docker image for vulnerabilities with Trivy
+      # Step 6: Scan Docker image for vulnerabilities with Trivy
       # Scans the built image for OS packages, application dependencies, and config issues
       # Results are uploaded to GitHub Security tab but won't block deployment
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           # Image to scan (the one we just built)
-          image-ref: n8n-custom:${{ github.ref_name }}
+          image-ref: n8n-custom:${{ steps.branch.outputs.branch }}
           # Output format: SARIF for GitHub Security tab integration
           format: 'sarif'
           # Output file for SARIF results
@@ -76,52 +103,88 @@ jobs:
           scan-type: 'image'
           # Severity levels to report (all levels)
           severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
-          # Additional options
-          scanners: 'vuln,config,secret'
+          # Additional options - use misconfig instead of deprecated config
+          scanners: 'vuln,misconfig,secret'
+          # Use latest Trivy version
+          version: 'latest'
 
-      # Step 6: Upload Trivy results to GitHub Security tab
+      # Step 7: Upload Trivy results to GitHub Security tab
       # Makes vulnerability findings visible in repository Security tab
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         if: always()  # Upload even if Trivy step had warnings
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy-docker-scan'
 
-      # Step 7: Tag image for Docker Hub repository
+      # Step 8: Install Helm for chart validation (PRs) and deployment (pushes)
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: 'latest'
+
+      # Step 9: Validate Helm charts (runs on both PRs and pushes)
+      # Validates Helm chart syntax and template rendering
+      - name: Validate Helm charts
+        run: |
+          echo "Validating Helm chart syntax..."
+          # Lint with values file to properly validate templates that require values
+          helm lint helm/ --values helm/values-dev.yaml
+          
+          echo "Validating Helm chart templates with dev values..."
+          helm template n8n-test helm/ -f helm/values-dev.yaml > /dev/null
+          
+          echo "Validating Helm chart templates with UAT values..."
+          helm template n8n-test helm/ -f helm/values-uat.yaml > /dev/null
+          
+          echo "Validating Helm chart templates with prod values..."
+          helm template n8n-test helm/ -f helm/values-prod.yaml > /dev/null
+          
+          echo "✅ All Helm charts validated successfully"
+
+      # Step 10: Tag image for Docker Hub repository (only on push)
       # Formats image name as: nomad1111/n8n-custom:<branch-name>
       - name: Tag image for Docker Hub
+        if: github.event_name == 'push'
         run: |
-          docker tag n8n-custom:${{ github.ref_name }} nomad1111/n8n-custom:${{ github.ref_name }}
+          docker tag n8n-custom:${{ steps.branch.outputs.branch }} nomad1111/n8n-custom:${{ steps.branch.outputs.branch }}
 
-      # Step 8: Push image to Docker Hub
+      # Step 11: Push image to Docker Hub (only on push)
       # Makes image available for Kubernetes to pull
       - name: Push Docker image
+        if: github.event_name == 'push'
         run: |
-          docker push nomad1111/n8n-custom:${{ github.ref_name }}
+          docker push nomad1111/n8n-custom:${{ steps.branch.outputs.branch }}
 
-      # Step 9: Determine which Helm values file to update
+      # Step 12: Determine which Helm values file to update (only on push)
       # Maps branch name to corresponding values file
       - name: Select correct Helm values file
+        if: github.event_name == 'push'
         id: selectfile
         run: |
-          if [ "${{ github.ref_name }}" = "develop" ]; then FILE="helm/values-dev.yaml"; fi
-          if [ "${{ github.ref_name }}" = "uat" ]; then FILE="helm/values-uat.yaml"; fi
-          if [ "${{ github.ref_name }}" = "main" ]; then FILE="helm/values-prod.yaml"; fi
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          if [ "$BRANCH" = "develop" ]; then FILE="helm/values-dev.yaml"; fi
+          if [ "$BRANCH" = "uat" ]; then FILE="helm/values-uat.yaml"; fi
+          if [ "$BRANCH" = "main" ]; then FILE="helm/values-prod.yaml"; fi
           echo "file=$FILE" >> $GITHUB_OUTPUT
+          echo "Selected values file: $FILE for branch: $BRANCH"
 
-      # Step 10: Update Helm values file with new image information
+      # Step 13: Update Helm values file with new image information (only on push)
       # Updates repository and tag, removes TODO comments
       - name: Update image in Helm values
+        if: github.event_name == 'push'
         run: |
           FILE="${{ steps.selectfile.outputs.file }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
           echo "Updating image in $FILE"
           
           # Update repository to use custom image
           sed -i "s|repository:.*|repository: nomad1111/n8n-custom|" "$FILE"
           
           # Update tag to match branch name
-          sed -i "s|tag:.*|tag: ${{ github.ref_name }}|" "$FILE"
+          sed -i "s|tag:.*|tag: $BRANCH|" "$FILE"
           
           # Remove TODO comments if switching from official image
           sed -i '/# TODO: Switch back to nomad1111/d' "$FILE"
@@ -132,9 +195,10 @@ jobs:
           echo "Updated image configuration:"
           grep -A 2 "image:" "$FILE" | head -3
 
-      # Step 11: Commit and push updated Helm values
+      # Step 14: Commit and push updated Helm values (only on push)
       # Commits changes back to repository, triggering Argo CD sync
       - name: Commit updated values
+        if: github.event_name == 'push'
         run: |
           # Configure git user for commits
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -145,7 +209,8 @@ jobs:
           
           # Commit only if there are changes (skip if no diff)
           # [skip ci] prevents infinite loop of workflow triggers
-          git diff --staged --quiet || git commit -m "chore: update ${{ github.ref_name }} image to nomad1111/n8n-custom:${{ github.ref_name }} [skip ci]"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+          git diff --staged --quiet || git commit -m "chore: update $BRANCH image to nomad1111/n8n-custom:$BRANCH [skip ci]"
           
           # Push changes to trigger Argo CD sync
           git push

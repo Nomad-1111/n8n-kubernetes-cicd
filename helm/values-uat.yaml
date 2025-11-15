@@ -24,19 +24,13 @@ timezone: Australia/Sydney
 # ----------------------------
 # Container Image Configuration
 # ----------------------------
-# Defines which Docker image to use and how to pull it.
-# GitHub Actions CI/CD workflow automatically updates repository and tag
-# when building and pushing images to Docker Hub.
 image:
-  # Custom image built by GitHub Actions CI/CD pipeline
-  # Automatically updated by workflow when image is built and pushed
+  # TEMPORARY: Using official n8n image until custom image is built
   repository: nomad1111/n8n-custom
-  # Image tag - matches branch name (develop, uat, main)
-  # GitHub Actions builds and tags images based on branch
   tag: uat
-  # Image pull policy: Always, IfNotPresent, or Never
-  # Always: Always pull latest (recommended for CI/CD to get latest builds)
   pullPolicy: Always
+  
+  # Custom image configuration (commented until image is available)
   
   # Optional: Image pull secrets for Docker Hub authentication
   # Recommended to avoid Docker Hub rate limits
