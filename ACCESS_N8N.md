@@ -202,6 +202,51 @@ kubectl logs -n n8n-dev -l app=n8n-api
 
 ## Troubleshooting
 
+### Port-Forward Timeout
+
+If port-forward times out for UAT or prod:
+
+**Symptoms**:
+```
+error: timed out waiting for the condition
+```
+
+**Solutions**:
+
+1. **Check service endpoints**:
+   ```powershell
+   kubectl get endpoints -n n8n-uat workflow-api-svc
+   kubectl get endpoints -n n8n-prod workflow-api-svc
+   ```
+   - Should show pod IPs, not empty
+
+2. **Verify service selector matches pod labels**:
+   ```powershell
+   kubectl get svc -n n8n-uat workflow-api-svc -o yaml | findstr selector
+   kubectl get pods -n n8n-uat -o yaml | findstr labels -A 5
+   ```
+
+3. **Try direct pod port-forward** (bypass service):
+   ```powershell
+   # Get pod name
+   kubectl get pods -n n8n-uat
+   
+   # Port-forward directly to pod
+   kubectl port-forward -n n8n-uat <pod-name> 5679:5678
+   ```
+
+4. **Check for network policies**:
+   ```powershell
+   kubectl get networkpolicies -n n8n-uat
+   kubectl get networkpolicies -n n8n-prod
+   ```
+
+5. **Restart the service** (if needed):
+   ```powershell
+   kubectl delete svc -n n8n-uat workflow-api-svc
+   # Argo CD will recreate it, or manually apply helm chart
+   ```
+
 ### Ingress Not Created
 
 If ingress doesn't exist:
