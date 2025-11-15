@@ -5,7 +5,7 @@ image:
 
 serviceAccount:
   create: true
-  name: n8n-dev-sa
+  name: n8n-prod-sa
 
 ingress:
   enabled: true
