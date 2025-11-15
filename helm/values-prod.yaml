@@ -16,7 +16,7 @@ timezone: Australia/Sydney
 # ----------------------------
 image:
   repository: n8nio/n8n
-  tag: latest
+  tag: main
   pullPolicy: Always
   # TODO: Switch back to nomad1111/n8n-custom:main once image is built and pushed
   # repository: nomad1111/n8n-custom
