@@ -38,6 +38,12 @@ spec:
               value: "5678"
             - name: N8N_HOST
               value: "0.0.0.0"
+            {{- if .Values.ingress.enabled }}
+            - name: N8N_PROTOCOL
+              value: {{ .Values.ingress.protocol | default "http" | quote }}
+            - name: WEBHOOK_URL
+              value: "{{ .Values.ingress.protocol | default "http" }}://{{ .Values.ingress.host }}/"
+            {{- end }}
             - name: GENERIC_TIMEZONE
               value: "{{ .Values.timezone }}"
             - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS

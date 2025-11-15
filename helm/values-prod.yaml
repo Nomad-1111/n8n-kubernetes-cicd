@@ -29,6 +29,7 @@ ingress:
   enabled: true
   className: nginx
   host: n8n.yourdomain.com    # <--- adjust for real domain
+  protocol: https  # http or https (use https for production)
   tls: []
 
 # ----------------------------

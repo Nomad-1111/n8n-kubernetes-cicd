@@ -29,6 +29,7 @@ ingress:
   enabled: true
   className: nginx
   host: n8n-dev.local
+  protocol: http  # http or https
   tls: []
 
 # ----------------------------
