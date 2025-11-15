@@ -15,9 +15,12 @@ timezone: Australia/Sydney
 # Image
 # ----------------------------
 image:
-  repository: nomad1111/n8n-custom
-  tag: develop
+  repository: n8nio/n8n
+  tag: latest
   pullPolicy: IfNotPresent
+  # Optional: Override command/args if needed
+  # command: ["/docker-entrypoint.sh"]
+  # args: ["start"]
 
 # ----------------------------
 # Ingress (optional)
