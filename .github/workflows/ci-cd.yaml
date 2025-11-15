@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+nname: CI/CD Pipeline
 
 on:
   push:
@@ -66,4 +66,3 @@ jobs:
           git add helm/
           git commit -m "Update Helm values for ${{ github.ref_name }} image" || echo "No changes"
           git push
-
