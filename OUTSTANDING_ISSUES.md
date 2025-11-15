@@ -56,28 +56,35 @@
 
 ### 3. Port-Forward Timeout for UAT/Prod
 
-**Status**: ⚠️ **INVESTIGATING**  
-**Priority**: MEDIUM  
-**Impact**: Cannot access UAT/prod via port-forward (works for dev)
+**Status**: ✅ **RESOLVED**  
+**Priority**: ~~MEDIUM~~ (COMPLETED)  
+**Impact**: ~~Cannot access UAT/prod via port-forward~~ → **All environments now accessible**
 
-**Description**:
-- Port-forward works for dev: `kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678`
-- Port-forward times out for UAT: `kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678`
-- Port-forward times out for prod: `kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678`
-- Pods are running and healthy
+**Resolution**:
+- Root cause: Pod labels didn't include required Kubernetes standard labels
+- Fix: Updated pod labels to include:
+  - `app.kubernetes.io/name: n8n`
+  - `app.kubernetes.io/instance: n8n-<env>`
+  - `app.kubernetes.io/part-of: n8n`
+- Service endpoints now properly populated
+- Port-forwarding works for all three environments
 
-**Possible Causes**:
-- Service selector mismatch
-- Network policy blocking connections
-- Service endpoints not properly configured
+**Current Access**:
+```powershell
+# Dev
+kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
+# Access: http://localhost:5678
 
-**Action Required**:
-1. Verify service selectors match pod labels
-2. Check service endpoints: `kubectl get endpoints -n n8n-uat workflow-api-svc`
-3. Test direct pod port-forward: `kubectl port-forward -n n8n-uat <pod-name> 5679:5678`
-4. Check for network policies: `kubectl get networkpolicies -n n8n-uat`
+# UAT
+kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
+# Access: http://localhost:5679
 
-**Workaround**: Use ingress + hosts file configuration (see `ACCESS_N8N.md`)
+# Prod
+kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
+# Access: http://localhost:5680
+```
+
+**Note**: See `ACCESS_N8N.md` for detailed troubleshooting if issues occur
 
 ---
 
@@ -301,6 +308,7 @@
 12. ✅ Created comprehensive documentation
 13. ✅ Got all three environments (dev/uat/prod) running
 14. ✅ Created access guide for local PC deployment
+15. ✅ Fixed port-forward timeout for UAT/prod environments
 
 ---
 
@@ -310,9 +318,9 @@
 |----------|-------|--------|
 | Critical | 1 | ⚠️ Requires action |
 | High | 2 | ⚠️ In progress |
-| Medium | 3 | ⚠️ Needs attention |
+| Medium | 2 | ⚠️ Needs attention |
 | Low | 6 | 📋 Future work |
-| Completed | 14 | ✅ Done |
+| Completed | 15 | ✅ Done |
 
 ---
 
@@ -322,8 +330,7 @@
 2. **Test GitHub Actions workflow** (push to develop branch)
 3. **Verify custom images are built and pushed**
 4. **Switch UAT/prod to custom images** (automatic via workflow)
-5. **Fix port-forward timeout** for UAT/prod access
-6. **Update production domain** in values-prod.yaml
+5. **Update production domain** in values-prod.yaml
 
 ---
 

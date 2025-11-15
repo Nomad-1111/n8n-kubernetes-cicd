@@ -1,4 +1,14 @@
+# ============================================================================
+# Kubernetes Namespace - UAT (User Acceptance Testing) Environment
+# ============================================================================
+# This file defines a Kubernetes namespace for the UAT environment.
+# Namespaces provide logical separation of resources within a cluster.
+# This namespace is created automatically by Argo CD when deploying (see syncOptions).
+# ============================================================================
+
 apiVersion: v1
 kind: Namespace
 metadata:
+  # Namespace name - must be unique across the cluster
+  # All n8n UAT resources will be deployed to this namespace
   name: n8n-uat

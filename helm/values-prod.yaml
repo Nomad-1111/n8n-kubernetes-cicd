@@ -1,44 +1,63 @@
+# ============================================================================
+# Helm Values - Production Environment
+# ============================================================================
+# This file contains configuration values for the production environment.
+# These values override the default values in the Helm chart templates.
+# This file is used when deploying to the 'main' branch via Argo CD.
+# ============================================================================
+
 # ----------------------------
-# Service Account
+# Service Account Configuration
 # ----------------------------
 serviceAccount:
   create: true
   name: n8n-prod-sa
 
 # ----------------------------
-# App Settings
+# Application Settings
 # ----------------------------
+# Production uses multiple replicas for high availability
 replicas: 2
 timezone: Australia/Sydney
 
 # ----------------------------
-# Image
+# Container Image Configuration
 # ----------------------------
 image:
+  # TEMPORARY: Using official n8n image until custom image is built
+  # TODO: Switch back to nomad1111/n8n-custom:main once image is built and pushed
   repository: n8nio/n8n
   tag: latest
   pullPolicy: Always
-  # TODO: Switch back to nomad1111/n8n-custom:main once image is built and pushed
+  
+  # Custom image configuration (commented until image is available)
   # repository: nomad1111/n8n-custom
   # tag: main
-  # Optional: imagePullSecrets for Docker Hub authentication (recommended to avoid rate limits)
+  
+  # Optional: Image pull secrets for Docker Hub authentication
+  # Recommended to avoid Docker Hub rate limits
   # pullSecrets: ["dockerhub-secret"]
-  # Optional: Override command/args if needed
+  
+  # Optional: Override container entrypoint if needed
   # command: ["/docker-entrypoint.sh"]
   # args: ["start"]
 
 # ----------------------------
-# Ingress
+# Ingress Configuration
 # ----------------------------
 ingress:
   enabled: true
   className: nginx
-  host: n8n.yourdomain.com    # <--- adjust for real domain
+  # PRODUCTION: Replace with your actual domain name
+  # Example: n8n.yourcompany.com
+  host: n8n.yourdomain.com    # <--- UPDATE THIS with your real domain
+  # Production should use HTTPS for security
   protocol: https  # http or https (use https for production)
+  # TODO: Configure TLS certificates (Let's Encrypt, cert-manager, etc.)
   tls: []
 
 # ----------------------------
-# Service
+# Service Configuration
 # ----------------------------
 service:
   type: ClusterIP
@@ -46,11 +65,12 @@ service:
   targetPort: 5678
 
 # ----------------------------
-# Persistent Storage
+# Persistent Storage Configuration
 # ----------------------------
 persistence:
   enabled: true
   storageClass: null
   accessMode: ReadWriteOnce
+  # Production uses larger storage for more workflows and data
   size: 5Gi
   mountPath: /home/node/.n8n

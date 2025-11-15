@@ -1,25 +1,53 @@
+# ============================================================================
+# Kubernetes Deployment for n8n
+# ============================================================================
+# This template creates a Deployment resource that manages n8n pods.
+# The Deployment ensures the specified number of replicas are running and
+# handles rolling updates when the image or configuration changes.
+# ============================================================================
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  # Deployment name - this will be used to identify the deployment
   name: n8n-api
+  # Standard Kubernetes labels for resource organization and selection
   labels:
     {{- include "n8n.labels" . | nindent 4 }}
 spec:
+  # Number of pod replicas to maintain
+  # Set via .Values.replicas (typically 1 for dev/uat, 2+ for prod)
   replicas: {{ .Values.replicas }}
+  
+  # Pod selector - defines which pods belong to this deployment
+  # Must match the labels in the pod template below
   selector:
     matchLabels:
+      # Required label for service selector matching
       app: n8n-api
+      # Standard Kubernetes labels for resource management
       {{- include "n8n.labels" . | nindent 6 }}
+  
+  # Pod template - defines the specification for pods created by this deployment
   template:
     metadata:
+      # Labels applied to pods - must match selector.matchLabels above
       labels:
         app: n8n-api
         {{- include "n8n.labels" . | nindent 8 }}
     spec:
+      # Disable automatic service environment variables injection
+      # Prevents Kubernetes from injecting service discovery env vars
       enableServiceLinks: false
+      
+      # Service Account - provides identity for pods to interact with Kubernetes API
+      # Only created if .Values.serviceAccount.create is true
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
+      
+      # Image Pull Secrets - for authenticating with private Docker registries
+      # Required if using private images or to avoid Docker Hub rate limits
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- range .Values.image.pullSecrets }}
@@ -27,44 +55,81 @@ spec:
         {{- end }}
       {{- end }}
 
+      # Container specifications
       containers:
         - name: n8n
+          # Container image - format: repository:tag
+          # Example: nomad1111/n8n-custom:develop
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          # Image pull policy: Always, IfNotPresent, or Never
+          # Always: Always pull latest image (recommended for CI/CD)
+          # IfNotPresent: Only pull if not already present locally
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          
+          # Optional: Override container entrypoint command
+          # Only used if .Values.image.command is defined
           {{- if .Values.image.command }}
           command: {{- toYaml .Values.image.command | nindent 12 }}
           {{- end }}
+          
+          # Optional: Override container command arguments
+          # Only used if .Values.image.args is defined
           {{- if .Values.image.args }}
           args: {{- toYaml .Values.image.args | nindent 12 }}
           {{- end }}
+          
+          # Container ports - exposes port 5678 (n8n default port)
           ports:
             - containerPort: 5678
+          
+          # Environment variables for n8n configuration
           env:
+            # n8n server port (must match containerPort above)
             - name: N8N_PORT
               value: "5678"
+            # n8n server host - 0.0.0.0 allows external connections
             - name: N8N_HOST
               value: "0.0.0.0"
+            
+            # Ingress-related environment variables
+            # Only set if ingress is enabled
             {{- if .Values.ingress.enabled }}
+            # Protocol for webhook URLs (http or https)
             - name: N8N_PROTOCOL
               value: {{ .Values.ingress.protocol | default "http" | quote }}
+            # Base URL for webhooks - used by n8n to generate webhook URLs
+            # Format: protocol://host/
             - name: WEBHOOK_URL
               value: "{{ .Values.ingress.protocol | default "http" }}://{{ .Values.ingress.host }}/"
             {{- end }}
+            
+            # Timezone for n8n workflows (e.g., Australia/Sydney, UTC)
             - name: GENERIC_TIMEZONE
               value: "{{ .Values.timezone }}"
+            
+            # Security: Enforce file permissions on settings files
             - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
               value: "true"
+            
+            # Database configuration - using SQLite for simplicity
+            # For production, consider PostgreSQL or MySQL
             - name: DB_TYPE
               value: sqlite
+            # Vacuum SQLite database on startup to optimize performance
             - name: DB_SQLITE_VACUUM_ON_STARTUP
               value: "true"
+          
+          # Volume mounts - mounts persistent storage into container
           volumeMounts:
             - name: n8n-data
+              # Mount path - where n8n stores workflows, credentials, and data
+              # Default: /home/node/.n8n
               mountPath: {{ .Values.persistence.mountPath }}
 
+      # Volumes - defines storage for the pod
       volumes:
         - name: n8n-data
+          # Persistent Volume Claim - provides persistent storage
+          # Created by pvc.yaml template if persistence.enabled is true
           persistentVolumeClaim:
             claimName: n8n-pvc
-
-

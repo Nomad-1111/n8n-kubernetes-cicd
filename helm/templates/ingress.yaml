@@ -1,22 +1,43 @@
+# ============================================================================
+# Kubernetes Ingress for n8n
+# ============================================================================
+# This template creates an Ingress resource that provides external HTTP/HTTPS
+# access to n8n. The ingress routes traffic from external URLs to the service.
+# Only created if .Values.ingress.enabled is true.
+# ============================================================================
+
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  # Ingress name - used to identify the ingress resource
   name: n8n-ingress
+  # Standard Kubernetes labels for resource organization
   labels:
     {{- include "n8n.labels" . | nindent 4 }}
 spec:
+  # Ingress class - specifies which ingress controller should handle this
+  # Common values: nginx, cilium, traefik, etc.
+  # Must match an installed ingress controller in your cluster
   ingressClassName: {{ .Values.ingress.className }}
+  
+  # Ingress rules - defines routing rules for incoming traffic
   rules:
+    # Host-based routing - routes traffic for specific hostname
     - host: {{ .Values.ingress.host }}
       http:
         paths:
+          # Root path - matches all paths under the host
           - path: /
+            # Path type: Exact, Prefix, or ImplementationSpecific
+            # Prefix: Matches all paths starting with /
             pathType: Prefix
+            # Backend service - where to route traffic
             backend:
               service:
+                # Service name - must match service.yaml name
                 name: workflow-api-svc
                 port:
+                  # Service port - must match service.yaml port
                   number: 5678
 {{- end }}
-

@@ -1,26 +1,54 @@
+# ============================================================================
+# Argo CD Application - UAT (User Acceptance Testing) Environment
+# ============================================================================
+# This file defines an Argo CD Application resource that manages the
+# deployment of n8n to the UAT environment. Argo CD monitors the
+# Git repository and automatically syncs changes when detected.
+# ============================================================================
+
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  # Application name - used to identify this application in Argo CD
   name: n8n-uat
+  # Namespace where Argo CD is installed (typically 'argocd')
   namespace: argocd
 spec:
+  # Argo CD project - groups applications for access control
   project: default
 
+  # Source configuration - defines where to get the application manifests
   source:
+    # Git repository URL containing the Helm chart
     repoURL: https://github.com/Nomad-1111/n8n.git
+    # Git branch or tag to monitor for changes
+    # 'uat' branch triggers deployments to UAT environment
     targetRevision: uat
+    # Path within repository containing Helm chart
     path: helm
+    # Helm-specific configuration
     helm:
+      # Values files to use when rendering the Helm chart
+      # These files override default chart values
       valueFiles:
         - values-uat.yaml
 
+  # Destination configuration - defines where to deploy the application
   destination:
+    # Kubernetes cluster API server URL
     server: https://kubernetes.default.svc
+    # Target namespace for deployment
     namespace: n8n-uat
 
+  # Sync policy - defines how Argo CD manages application synchronization
   syncPolicy:
+    # Automated sync configuration
     automated:
+      # Prune: Automatically delete resources that are no longer in Git
       prune: true
+      # Self-heal: Automatically correct drift from Git state
       selfHeal: true
+    # Sync options - additional synchronization behaviors
     syncOptions:
+      # CreateNamespace: Automatically create the target namespace if missing
       - CreateNamespace=true

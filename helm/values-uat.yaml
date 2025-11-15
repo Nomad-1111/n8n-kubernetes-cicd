@@ -1,44 +1,61 @@
+# ============================================================================
+# Helm Values - UAT (User Acceptance Testing) Environment
+# ============================================================================
+# This file contains configuration values for the UAT environment.
+# These values override the default values in the Helm chart templates.
+# This file is used when deploying to the 'uat' branch via Argo CD.
+# ============================================================================
+
 # ----------------------------
-# Service Account
+# Service Account Configuration
 # ----------------------------
+# ServiceAccount provides identity for pods to interact with Kubernetes API.
 serviceAccount:
   create: true
+  # ServiceAccount name - must be unique within the namespace
   name: n8n-uat-sa
 
 # ----------------------------
-# App Settings
+# Application Settings
 # ----------------------------
 replicas: 1
 timezone: Australia/Sydney
 
 # ----------------------------
-# Image
+# Container Image Configuration
 # ----------------------------
 image:
+  # TEMPORARY: Using official n8n image until custom image is built
+  # TODO: Switch back to nomad1111/n8n-custom:uat once image is built and pushed
   repository: n8nio/n8n
   tag: latest
   pullPolicy: Always
-  # TODO: Switch back to nomad1111/n8n-custom:uat once image is built and pushed
+  
+  # Custom image configuration (commented until image is available)
   # repository: nomad1111/n8n-custom
   # tag: uat
-  # Optional: imagePullSecrets for Docker Hub authentication (recommended to avoid rate limits)
+  
+  # Optional: Image pull secrets for Docker Hub authentication
+  # Recommended to avoid Docker Hub rate limits
   # pullSecrets: ["dockerhub-secret"]
-  # Optional: Override command/args if needed
+  
+  # Optional: Override container entrypoint if needed
   # command: ["/docker-entrypoint.sh"]
   # args: ["start"]
 
 # ----------------------------
-# Ingress
+# Ingress Configuration
 # ----------------------------
 ingress:
   enabled: true
   className: nginx
+  # UAT hostname - add to hosts file for local access: 127.0.0.1 n8n-uat.local
   host: n8n-uat.local
   protocol: http  # http or https
   tls: []
 
 # ----------------------------
-# Service
+# Service Configuration
 # ----------------------------
 service:
   type: ClusterIP
@@ -46,7 +63,7 @@ service:
   targetPort: 5678
 
 # ----------------------------
-# Persistent Storage
+# Persistent Storage Configuration
 # ----------------------------
 persistence:
   enabled: true
@@ -54,4 +71,3 @@ persistence:
   accessMode: ReadWriteOnce
   size: 1Gi
   mountPath: /home/node/.n8n
-
