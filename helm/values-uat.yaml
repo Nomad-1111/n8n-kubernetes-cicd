@@ -3,7 +3,7 @@ replicas: 1
 timezone: Australia/Sydney
 
 image:
-  repository: n8n-custom
+  repository: nomad1111/n8n-custom
   tag: uat
   pullPolicy: IfNotPresent
 
