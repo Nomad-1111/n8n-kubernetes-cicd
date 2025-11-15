@@ -30,27 +30,27 @@
 
 ### 2. Switch UAT/Prod to Custom Images
 
-**Status**: ⚠️ **PENDING IMAGE BUILD**  
-**Priority**: HIGH  
-**Impact**: Currently using official `n8nio/n8n:latest` temporarily
+**Status**: ✅ **CONFIGURED** (Awaiting first image build)  
+**Priority**: ~~HIGH~~ (Configuration complete, pending build)  
+**Impact**: ~~Currently using official `n8nio/n8n:latest` temporarily~~ → **Configured to use custom images**
 
-**Description**:
-- UAT and prod values files have TODO comments
-- Currently using `n8nio/n8n:latest` as temporary solution
-- Need to switch to `nomad1111/n8n-custom:uat` and `nomad1111/n8n-custom:main`
-
-**Action Required**:
-1. Once Docker Hub secrets are configured, push to `uat` or `main` branch
-2. GitHub Actions will automatically:
-   - Build custom image
-   - Push to Docker Hub
-   - Update Helm values files
-   - Remove TODO comments
-3. Argo CD will auto-sync and deploy custom images
+**Resolution**:
+- ✅ Removed all TODO comments from values files
+- ✅ Updated `helm/values-uat.yaml` to use `nomad1111/n8n-custom:uat`
+- ✅ Updated `helm/values-prod.yaml` to use `nomad1111/n8n-custom:main`
+- ✅ Added documentation explaining CI/CD workflow auto-updates
+- ✅ All environments now consistently configured for custom images
 
 **Current State**:
-- `helm/values-uat.yaml`: Using `n8nio/n8n:latest` (temporary)
-- `helm/values-prod.yaml`: Using `n8nio/n8n:latest` (temporary)
+- `helm/values-dev.yaml`: Using `nomad1111/n8n-custom:develop` ✅
+- `helm/values-uat.yaml`: Using `nomad1111/n8n-custom:uat` ✅
+- `helm/values-prod.yaml`: Using `nomad1111/n8n-custom:main` ✅
+
+**Next Steps**:
+1. Configure Docker Hub secrets in GitHub (if not already done)
+2. Push to `develop`, `uat`, or `main` branch to trigger first build
+3. GitHub Actions will build and push images automatically
+4. Argo CD will auto-sync and deploy custom images
 
 ---
 
@@ -309,6 +309,11 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 13. ✅ Got all three environments (dev/uat/prod) running
 14. ✅ Created access guide for local PC deployment
 15. ✅ Fixed port-forward timeout for UAT/prod environments
+16. ✅ Configured UAT/prod to use custom Docker images (removed TODO comments)
+17. ✅ Added CodeQL security scanning for pull requests
+18. ✅ Added Trivy Docker image scanning to CI/CD pipeline
+19. ✅ Added comprehensive YAML comments to all configuration files
+20. ✅ Created complete setup guide for installation from scratch
 
 ---
 
@@ -317,10 +322,10 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 | Priority | Count | Status |
 |----------|-------|--------|
 | Critical | 1 | ⚠️ Requires action |
-| High | 2 | ⚠️ In progress |
+| High | 1 | ⚠️ Pending build |
 | Medium | 2 | ⚠️ Needs attention |
 | Low | 6 | 📋 Future work |
-| Completed | 15 | ✅ Done |
+| Completed | 20 | ✅ Done |
 
 ---
 
@@ -329,8 +334,8 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 1. **Add Docker Hub secrets to GitHub** (CRITICAL - blocks CI/CD)
 2. **Test GitHub Actions workflow** (push to develop branch)
 3. **Verify custom images are built and pushed**
-4. **Switch UAT/prod to custom images** (automatic via workflow)
-5. **Update production domain** in values-prod.yaml
+4. **Update production domain** in values-prod.yaml
+5. **Review security scan results** in GitHub Security tab
 
 ---
 

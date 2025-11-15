@@ -107,23 +107,23 @@ git push origin uat  # or main for prod
 
 ### Temporary Configuration
 
-Currently, UAT and prod are using the official `n8nio/n8n:latest` image temporarily. The values files have TODO comments indicating where to switch back.
+All environments are now configured to use the custom Docker image (`nomad1111/n8n-custom`) with branch-based tags. The values files are automatically updated by the workflow when images are built and pushed.
 
-### Switching to Custom Images
+### Image Configuration
 
-Once images are built and pushed:
+All environments are pre-configured to use custom images:
+- **Dev**: `nomad1111/n8n-custom:develop`
+- **UAT**: `nomad1111/n8n-custom:uat`
+- **Prod**: `nomad1111/n8n-custom:main`
 
-1. **Automatic** (via GitHub Actions):
-   - Push to `uat` or `main` branch
-   - Workflow builds and pushes image
-   - Values file automatically updated
-   - Argo CD syncs deployment
+The workflow automatically:
+1. Builds Docker image on push to branch
+2. Pushes image to Docker Hub
+3. Updates Helm values file with new image tag
+4. Commits changes back to repository
+5. Argo CD auto-syncs deployment
 
-2. **Manual**:
-   - Build and push images (see above)
-   - Update values files
-   - Commit and push to branches
-   - Argo CD will auto-sync
+No manual intervention required once Docker Hub secrets are configured.
 
 ## Image Build Process
 
@@ -216,20 +216,41 @@ If Argo CD doesn't sync after image push:
 3. **Check branch**: Ensure changes are on correct branch (`uat` or `main`)
 4. **Verify values file**: Check that image repository and tag are correct
 
+## Security Scanning
+
+The CI/CD pipeline includes automated security scanning:
+
+- **Trivy**: Scans Docker images for vulnerabilities (runs on every push)
+  - Integrated into `.github/workflows/ci-cd.yaml`
+  - Scans built images before pushing to Docker Hub
+  - Results uploaded to GitHub Security tab
+  
+- **CodeQL**: Analyzes code for security issues (runs on pull requests)
+  - Separate workflow: `.github/workflows/codeql-analysis.yml`
+  - Scans JavaScript/TypeScript, YAML configs, Helm charts
+  - Results uploaded to GitHub Security tab
+
+Both tools are configured as **non-blocking** - they report findings but don't prevent deployments.
+
+**See `SECURITY_SCANNING.md` for detailed information on security scanning.**
+
 ## Next Steps
 
 1. **Set up Docker Hub secrets** in GitHub repository
 2. **Test workflow** by pushing to `develop` branch
 3. **Verify image** is pushed to Docker Hub
 4. **Check Argo CD** syncs automatically
-5. **Switch UAT/prod** from official image to custom images
+5. **Review security scan results** in GitHub Security tab
 
 ## References
 
 - **Docker Hub Repository**: https://hub.docker.com/repository/docker/nomad1111/n8n-custom
 - **GitHub Actions**: `.github/workflows/ci-cd.yaml`
+- **CodeQL Workflow**: `.github/workflows/codeql-analysis.yml`
 - **Dockerfile**: `docker/Dockerfile`
 - **Helm Values**: `helm/values-*.yaml`
+- **Security Scanning**: `SECURITY_SCANNING.md`
+- **Setup Guide**: `SETUP_GUIDE.md`
 
 ---
 

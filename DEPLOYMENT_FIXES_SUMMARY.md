@@ -278,7 +278,84 @@ All environments now have:
 
 ---
 
-### 2. Hardcoded Credentials (MEDIUM PRIORITY)
+### 2. Image Configuration Fix ✅ COMPLETED
+
+**Status**: Implemented  
+**Impact**: All environments now consistently configured for custom images
+
+**Description**:
+- Removed all TODO comments from `helm/values-uat.yaml` and `helm/values-prod.yaml`
+- Updated both files to use `nomad1111/n8n-custom` repository by default
+- Set correct tags: `uat` for UAT, `main` for production
+- Added comprehensive documentation explaining CI/CD workflow auto-updates
+- All three environments now have consistent image configuration
+
+**Files Modified**:
+- `helm/values-uat.yaml`
+- `helm/values-prod.yaml`
+
+**Current State**:
+- Dev: `nomad1111/n8n-custom:develop` ✅
+- UAT: `nomad1111/n8n-custom:uat` ✅
+- Prod: `nomad1111/n8n-custom:main` ✅
+
+---
+
+### 3. Security Scanning Implementation ✅ COMPLETED
+
+**Status**: Implemented  
+**Impact**: Automated security vulnerability detection
+
+**Description**:
+- Added CodeQL analysis workflow (`.github/workflows/codeql-analysis.yml`)
+  - Runs on pull requests to detect code vulnerabilities
+  - Scans JavaScript/TypeScript, YAML configs, Helm charts
+  - Results uploaded to GitHub Security tab
+- Integrated Trivy Docker image scanning into CI/CD pipeline
+  - Scans built Docker images for container vulnerabilities
+  - Checks OS packages, application dependencies, config files
+  - Results uploaded to GitHub Security tab
+- Both tools configured as non-blocking (report only, don't prevent deployments)
+- Created comprehensive security scanning documentation (`SECURITY_SCANNING.md`)
+
+**Files Created**:
+- `.github/workflows/codeql-analysis.yml`
+- `SECURITY_SCANNING.md`
+
+**Files Modified**:
+- `.github/workflows/ci-cd.yaml` (added Trivy scanning step)
+- `README.md` (added security scanning section)
+
+**Benefits**:
+- Early detection of security vulnerabilities
+- Automated scanning without manual intervention
+- Integration with GitHub Security features
+- Non-blocking approach allows deployments while addressing issues
+
+---
+
+### 4. Comprehensive Documentation ✅ COMPLETED
+
+**Status**: Implemented  
+**Impact**: Complete documentation for setup, usage, and troubleshooting
+
+**Description**:
+- Added detailed comments to all YAML files explaining each section
+- Created complete setup guide (`SETUP_GUIDE.md`) for installation from scratch
+- Updated all documentation to reflect current state
+- Added security scanning documentation
+- Comprehensive troubleshooting guides
+
+**Files Created/Updated**:
+- `SETUP_GUIDE.md` - Complete installation guide
+- `SECURITY_SCANNING.md` - Security scanning documentation
+- All Helm templates with detailed comments
+- All values files with detailed comments
+- All Argo CD application files with detailed comments
+
+---
+
+### 5. Hardcoded Credentials (MEDIUM PRIORITY)
 
 **Status**: Present in values files  
 **Impact**: Security risk
@@ -480,6 +557,20 @@ After fixes, Argo CD should:
 - Argo CD is configured to auto-sync with prune and self-heal enabled
 - The deployment uses branch-based image tags aligned with Git branches
 - Timezone is configured for Australia/Sydney across all environments
+
+---
+
+## Summary of Recent Updates
+
+### Latest Changes (November 2025)
+
+1. **Image Configuration**: All environments now configured to use custom Docker images (`nomad1111/n8n-custom`) with branch-based tags. Removed all TODO comments.
+
+2. **Security Scanning**: Added CodeQL and Trivy security scanning to detect vulnerabilities in code and Docker images.
+
+3. **Documentation**: Added comprehensive comments to all YAML files and created complete setup guide.
+
+4. **Port-Forward Fix**: Resolved port-forward timeout issues for UAT and prod environments.
 
 ---
 
