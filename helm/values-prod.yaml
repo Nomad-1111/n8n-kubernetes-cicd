@@ -17,7 +17,9 @@ timezone: Australia/Sydney
 image:
   repository: n8nio/n8n
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
+  # Optional: imagePullSecrets for private registries or Docker Hub authentication
+  # pullSecrets: []
   # Optional: Override command/args if needed
   # command: ["/docker-entrypoint.sh"]
   # args: ["start"]
