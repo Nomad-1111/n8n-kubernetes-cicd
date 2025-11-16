@@ -20,7 +20,7 @@ spec:
   # Source configuration - defines where to get the application manifests
   source:
     # Git repository URL containing the Helm chart
-    repoURL: https://github.com/Nomad-1111/n8n.git
+    repoURL: https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
     # Git branch or tag to monitor for changes
     # 'main' branch triggers deployments to production environment
     targetRevision: main

@@ -77,7 +77,7 @@ database:
 image:
   # Custom image built by GitHub Actions CI/CD pipeline
   # Automatically updated by workflow when image is built and pushed
-  repository: nomad1111/n8n-custom
+  repository: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME
   # Image tag - matches branch name (develop, uat, main)
   # GitHub Actions builds and tags images based on branch
   tag: uat

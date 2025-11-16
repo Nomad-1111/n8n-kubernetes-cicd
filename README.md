@@ -1,16 +1,179 @@
-# Full CI/CD Pipeline for n8n with GitHub Actions, Docker, Helm, and Argo CD
+# n8n Kubernetes Deployment with Full CI/CD Pipeline
 
-This repository contains a fully automated **multi-environment CI/CD pipeline** for deploying `n8n` using:
-
-- **Docker Desktop (Kubernetes enabled)**
-- **GitHub Actions**
-- **Helm + Environment Values**
-- **Argo CD (auto-sync enabled)**  
-- **Multi‑environment support**: `dev`, `uat`, `prod`
+A production-ready, enterprise-grade deployment solution for [n8n](https://n8n.io) workflow automation with complete CI/CD automation, multi-environment support, and GitOps integration.
 
 ---
 
-# 🚀 Architecture Overview
+## 🎯 What is This Project?
+
+This repository provides a **complete, automated CI/CD pipeline** for deploying n8n to Kubernetes. Unlike standard Helm charts that only deploy n8n, this project includes:
+
+- ✅ **Full CI/CD Automation** - GitHub Actions builds, scans, and deploys automatically
+- ✅ **Multi-Environment Support** - Separate dev, UAT, and production environments
+- ✅ **GitOps Deployment** - Argo CD automatically syncs deployments from Git
+- ✅ **Custom Docker Images** - Build and version your own n8n images
+- ✅ **Security Scanning** - Automated vulnerability scanning with Trivy and CodeQL
+- ✅ **Database Flexibility** - Support for SQLite (default) and PostgreSQL
+- ✅ **Production Ready** - Ingress, persistent storage, and high availability support
+
+---
+
+## 🚀 Use Cases
+
+### 1. **Enterprise Workflow Automation Platform**
+Deploy n8n as a centralized workflow automation platform with proper CI/CD:
+- Automate business processes across multiple services
+- Integrate different APIs and systems
+- Create complex workflows with visual interface
+- Schedule and trigger workflows automatically
+- **Multi-environment workflow testing** before production
+
+### 2. **CI/CD Integration Hub**
+Use n8n to automate your development and deployment processes:
+- Trigger builds and deployments based on events
+- Send notifications on pipeline status
+- Automate code reviews and approvals
+- Integrate with GitHub, GitLab, Jenkins, and more
+- **Automated workflow deployment** through this same pipeline
+
+### 3. **Multi-Environment Development Workflow**
+Perfect for teams that need proper dev → UAT → production promotion:
+- **Development**: Test new workflows and integrations safely
+- **UAT**: Validate workflows before production deployment
+- **Production**: Run critical business workflows with high availability
+- **Automated promotion** through branch-based deployment
+
+### 4. **API Integration Hub**
+Connect disparate systems and services:
+- REST API integrations
+- Database connections (PostgreSQL, MySQL, MongoDB)
+- Cloud service integrations (AWS, Azure, GCP)
+- Custom webhook endpoints
+- Data transformation and routing
+
+### 5. **Scheduled Tasks and Monitoring**
+Automate scheduled operations:
+- Daily/weekly/monthly report generation
+- System health checks and monitoring
+- Data synchronization between systems
+- Automated backups and maintenance tasks
+
+### 6. **Business Process Automation**
+Streamline business operations:
+- Customer onboarding workflows
+- Order processing automation
+- Invoice and payment processing
+- Email marketing automation
+- Customer support ticket routing
+
+---
+
+## 🆚 How This Differs from Community Helm Charts
+
+### Community Helm Charts
+
+Popular community charts like:
+- **[8gears/n8n-helm-chart](https://github.com/8gears/n8n-helm-chart)** - General-purpose n8n deployment
+- **[community-charts/n8n](https://artifacthub.io/packages/helm/community-charts/n8n)** - Standard n8n Helm chart
+
+**What they provide:**
+- ✅ Basic n8n deployment to Kubernetes
+- ✅ Configurable values for n8n settings
+- ✅ Ingress, persistence, and service configuration
+- ✅ Support for scaling and worker nodes
+- ✅ Redis integration for queue mode
+
+**What they don't provide:**
+- ❌ CI/CD automation
+- ❌ Multi-environment support
+- ❌ GitOps integration
+- ❌ Custom Docker image building
+- ❌ Automated security scanning
+- ❌ Branch-based deployment strategy
+
+---
+
+### This Project - Full CI/CD Solution
+
+**What this project provides:**
+
+#### 1. **Complete CI/CD Pipeline**
+- **GitHub Actions** automatically builds Docker images on every push
+- **Automated security scanning** with Trivy and CodeQL
+- **Helm chart validation** before deployment
+- **Automatic image tagging** based on branch names
+- **Self-updating Helm values** - workflow updates values files automatically
+
+#### 2. **Multi-Environment Support**
+- **Separate configurations** for dev, UAT, and production
+- **Branch-based deployment** - `develop` → dev, `uat` → UAT, `main` → production
+- **Environment-specific values** - different replicas, storage, and settings per environment
+- **Automated promotion** through Git branch workflow
+
+#### 3. **GitOps Integration**
+- **Argo CD** automatically syncs deployments from Git
+- **Auto-healing** - Argo CD corrects manual changes
+- **Prune mode** - Removes resources not in Git
+- **Git as source of truth** - All changes tracked in version control
+
+#### 4. **Custom Docker Images**
+- **Build your own images** with customizations
+- **Version control** - Images tagged by branch name
+- **Custom Dockerfile** - Add your own packages or configurations
+- **Automated builds** - No manual Docker build/push needed
+
+#### 5. **Enterprise Features**
+- **Security scanning** integrated into CI/CD
+- **Database flexibility** - Easy switch between SQLite and PostgreSQL
+- **Comprehensive documentation** - Step-by-step guides
+- **Production-ready** - Includes all best practices
+
+---
+
+## 📊 Comparison Table
+
+| Feature | Community Charts | This Project |
+|---------|------------------|--------------|
+| **Basic n8n Deployment** | ✅ Yes | ✅ Yes |
+| **CI/CD Automation** | ❌ No | ✅ Yes (GitHub Actions) |
+| **Multi-Environment** | ❌ Manual setup | ✅ Automated (dev/uat/prod) |
+| **GitOps (Argo CD)** | ❌ No | ✅ Yes (auto-sync) |
+| **Custom Docker Images** | ❌ Uses official | ✅ Builds custom images |
+| **Security Scanning** | ❌ Manual | ✅ Automated (Trivy + CodeQL) |
+| **Branch-based Deployment** | ❌ No | ✅ Yes |
+| **Auto-update Helm Values** | ❌ Manual | ✅ Automated |
+| **Documentation** | Basic | ✅ Comprehensive |
+| **Production Ready** | ✅ Yes | ✅ Yes (with CI/CD) |
+
+---
+
+## 🎯 When to Use Each
+
+### Use Community Helm Charts If:
+- ✅ You want a **quick, simple deployment** of n8n
+- ✅ You don't need **CI/CD automation**
+- ✅ You're deploying to a **single environment**
+- ✅ You're okay with **manual updates** and deployments
+- ✅ You want to use the **official n8n Docker image**
+- ✅ You prefer **minimal setup** and configuration
+
+**Example**: Personal projects, small teams, proof-of-concept deployments
+
+### Use This Project If:
+- ✅ You need **automated CI/CD** for n8n deployments
+- ✅ You want **multi-environment support** (dev/uat/prod)
+- ✅ You prefer **GitOps** workflow (Argo CD)
+- ✅ You want to **build custom Docker images**
+- ✅ You need **automated security scanning**
+- ✅ You want **branch-based deployment** strategy
+- ✅ You're deploying to **production** with proper workflows
+- ✅ You want **comprehensive documentation** and guides
+
+**Example**: Enterprise deployments, teams with multiple environments, production workloads
+
+---
+
+## 🏗 Architecture
 
 ```
 Developer Commit / PR
@@ -18,372 +181,92 @@ Developer Commit / PR
         ▼
  GitHub Actions
    ├── Build Docker Image
-   ├── Push Image
-   ├── Update Helm values (tag)
-   └── Commit back to repo
+   ├── Security Scan (Trivy)
+   ├── Validate Helm Charts
+   ├── Push to Docker Hub
+   └── Update Helm Values
         │
         ▼
-   Argo CD (Auto‑Sync)
-   ├── Detects Helm change
+   Argo CD (Auto-Sync)
+   ├── Detects Changes
    ├── Syncs Deployment
-   └── Kubernetes Deploys New Image
+   └── Kubernetes Deploys
 ```
 
 ---
 
-# 🏗 Folder Structure
+## 📋 Quick Start
 
-```
-repo/
-│── .github/workflows/
-│     └── ci-cd.yaml          # Unified workflow for all environments
-│
-│── helm/
-│     ├── Chart.yaml
-│     ├── values-dev.yaml
-│     ├── values-uat.yaml
-│     ├── values-prod.yaml
-│     └── templates/
-│           ├── deployment.yaml
-│           ├── service.yaml
-│           ├── ingress.yaml
-│           └── pvc.yaml
-```
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
+   cd YOUR-REPO-NAME
+   ```
 
----
+2. **Configure your settings** (see [CONFIGURATION.md](CONFIGURATION.md)):
+   - Update Docker Hub repository name
+   - Update GitHub repository URLs
+   - Configure timezone and domain settings
 
-# ⚙ GitHub Actions (Multi‑Environment)
+3. **Follow the setup guide**:
+   - See [SETUP_GUIDE.md](SETUP_GUIDE.md) for complete installation instructions
 
-### **Unified CI/CD Workflow**
-
-A single workflow (`.github/workflows/ci-cd.yaml`) handles all environments:
-
-**Triggers**:
-- **Pull Requests**: Validates code (builds, scans, validates Helm charts) - no deployment
-- **Push** (after PR merge): Full deployment pipeline
-  - Push to `develop` branch → Builds `nomad1111/n8n-custom:develop` → Deploys to dev
-  - Push to `uat` branch → Builds `nomad1111/n8n-custom:uat` → Deploys to UAT
-  - Push to `main` branch → Builds `nomad1111/n8n-custom:main` → Deploys to prod
-
-**Workflow Steps (Pull Request - Validation Only)**:
-1. Checkout PR branch code
-2. Set up Docker Buildx
-3. Build Docker image (validation only, not pushed)
-4. Scan image with Trivy
-5. Validate Helm charts (lint + template rendering)
-6. Report results in PR checks
-
-**Workflow Steps (Push - Full Deployment)**:
-1. Checkout code
-2. Set up Docker Buildx
-3. Login to Docker Hub (requires secrets: `DOCKER_USERNAME`, `DOCKER_PASSWORD`)
-4. Build Docker image from `docker/Dockerfile`
-5. Scan image with Trivy
-6. Validate Helm charts (lint + template rendering)
-7. Tag and push to Docker Hub as `nomad1111/n8n-custom:<branch-name>`
-8. Update corresponding Helm values file
-9. Commit and push changes back to repository
-10. Argo CD auto-syncs deployment
-
-**Branch Promotion Flow**:
-- Work on `develop` → Create PR → Validate → Merge → Deploys to dev
-- Promote to UAT → Create PR from `develop` to `uat` → Validate → Merge → Deploys to UAT
-- Promote to Production → Create PR from `uat` to `main` → Validate → Merge → Deploys to prod
-
-**Setup Required**:
-- Add GitHub secrets: `DOCKER_USERNAME` and `DOCKER_PASSWORD`
-- See `CI_CD_PROCESS.md` for detailed setup instructions
-
-**Current Status**:
-- ✅ Workflow configured and ready
-- ✅ All environments accessible via port-forward (dev/uat/prod)
-- ✅ Security scanning enabled (CodeQL + Trivy)
-- ✅ All environments configured to use custom Docker images
-- ⚠️ Awaiting Docker Hub credentials (required for first build)
+4. **Deploy**:
+   ```bash
+   kubectl apply -f argo/n8n-dev.yaml
+   ```
 
 ---
 
-## 🔒 Security Scanning
+## 📚 Documentation
 
-This repository includes automated security scanning to detect vulnerabilities:
-
-### CodeQL Analysis
-- **Runs on**: Pull requests to `develop`, `uat`, or `main` branches
-- **Scans**: JavaScript/TypeScript code, YAML configs, Helm charts
-- **Results**: Available in GitHub Security tab and PR annotations
-- **Workflow**: `.github/workflows/codeql-analysis.yml`
-
-### Trivy Docker Image Scanning
-- **Runs on**: Every PR and push (as part of CI/CD pipeline)
-- **Scans**: Built Docker images for OS packages, dependencies, and config issues
-- **Results**: Uploaded to GitHub Security tab and reported in PR checks
-- **Integration**: Part of `.github/workflows/ci-cd.yaml`
-
-### Helm Chart Validation
-- **Runs on**: Every PR and push (as part of CI/CD pipeline)
-- **Validates**: Helm chart syntax and template rendering
-- **Results**: Reported in workflow logs and PR checks
-- **Integration**: Part of `.github/workflows/ci-cd.yaml`
-
-**Note**: Security scans are **non-blocking** - they report findings but don't prevent deployments. Review findings in the GitHub Security tab.
-
-**See `SECURITY_SCANNING.md` for detailed documentation on security scanning.**
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete installation and setup guide
+- **[CONFIGURATION.md](CONFIGURATION.md)** - Configuration guide for customizing the deployment
+- **[CI_CD_PROCESS.md](CI_CD_PROCESS.md)** - CI/CD workflow documentation
+- **[ACCESS_N8N.md](ACCESS_N8N.md)** - How to access n8n after deployment
+- **[SECURITY_SCANNING.md](SECURITY_SCANNING.md)** - Security scanning information
 
 ---
 
-# ☸ Kubernetes Deployments via Helm
+## ⚙️ Requirements
 
-Each environment has its own Helm values file that configures the deployment:
-
-- **`helm/values-dev.yaml`** - Development environment configuration
-- **`helm/values-uat.yaml`** - UAT environment configuration  
-- **`helm/values-prod.yaml`** - Production environment configuration
-
-### Example Configuration (`helm/values-dev.yaml`)
-
-```yaml
-# Container Image Configuration
-image:
-  repository: nomad1111/n8n-custom
-  tag: develop
-  pullPolicy: Always
-
-# Application Settings
-replicas: 1
-timezone: Australia/Sydney
-
-# Ingress Configuration
-ingress:
-  enabled: true
-  className: nginx
-  host: n8n-dev.local
-  protocol: http
-
-# Service Configuration
-service:
-  type: ClusterIP
-  port: 5678
-  targetPort: 5678
-
-# Persistent Storage
-persistence:
-  enabled: true
-  size: 1Gi
-  mountPath: /home/node/.n8n
-```
-
-**See the actual values files for complete configuration options.**
+- Kubernetes cluster (Docker Desktop, Minikube, or cloud provider)
+- kubectl installed and configured
+- Helm 3.x installed
+- Argo CD installed (for GitOps)
+- Docker Hub account (for image storage)
+- GitHub account (for CI/CD)
 
 ---
 
-# 🚢 Argo CD Setup
+## 🔧 Configuration Required
 
-Argo CD applications are already configured in the `argo/` directory:
+Before using this repository, you need to update several hardcoded references:
 
-- **`argo/n8n-dev.yaml`** - Development environment (watches `develop` branch)
-- **`argo/n8n-uat.yaml`** - UAT environment (watches `uat` branch)
-- **`argo/n8n-prod.yaml`** - Production environment (watches `main` branch)
+1. **Docker Hub Repository** - Update `YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME` to your repository
+2. **GitHub Repository URLs** - Update `YOUR-USERNAME/YOUR-REPO-NAME` to your repository
+3. **Timezone** - Update `Australia/Sydney` to your timezone (optional)
+4. **Production Domain** - Update `n8n.yourdomain.com` to your domain
 
-### Apply Argo CD Applications
-
-```bash
-# Apply all Argo CD applications
-kubectl apply -f argo/n8n-dev.yaml
-kubectl apply -f argo/n8n-uat.yaml
-kubectl apply -f argo/n8n-prod.yaml
-```
-
-Each application automatically:
-- Monitors the corresponding Git branch for changes
-- Syncs deployments when Helm values are updated
-- Maintains desired state with prune and self-heal enabled
-
-**See `SETUP_GUIDE.md` for complete Argo CD installation and configuration.**
+**See [CONFIGURATION.md](CONFIGURATION.md) for detailed instructions.**
 
 ---
 
-# 🔄 How the Pipeline Works (End‑to‑End)
+## 🤝 Contributing
 
-## Pull Request Flow (Validation)
-
-| Step | Trigger | Action |
-|------|---------|--------|
-| 1 | Create PR targeting `develop`/`uat`/`main` | GitHub Actions workflow triggers |
-| 2 | Docker Build | Builds image from `docker/Dockerfile` (validation only) |
-| 3 | Security Scan | Scans image with Trivy for vulnerabilities |
-| 4 | Helm Validation | Validates Helm charts (lint + template rendering) |
-| 5 | Report Results | Results shown in PR checks |
-
-## Push Flow (Deployment)
-
-| Step | Trigger | Action |
-|------|---------|--------|
-| 1 | Merge PR / Push to branch (`develop`/`uat`/`main`) | GitHub Actions workflow triggers |
-| 2 | Docker Build | Builds image from `docker/Dockerfile` |
-| 3 | Security Scan | Scans image with Trivy for vulnerabilities |
-| 4 | Helm Validation | Validates Helm charts (lint + template rendering) |
-| 5 | Tag & Push | Tags as `nomad1111/n8n-custom:<branch-name>` and pushes to Docker Hub |
-| 6 | Update Helm values | Updates corresponding `values-*.yaml` file |
-| 7 | Commit changes | GitHub Actions commits updated values back to repo |
-| 8 | Argo CD detects change | Auto-sync begins (prune + self-heal enabled) |
-| 9 | Kubernetes deploys | New image rolls out automatically |
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-# 🧪 Test the Pipeline
+## 📄 License
 
-### 1️⃣ Create a Pull Request
-
-Create a feature branch and open a PR targeting `develop`:
-
-```bash
-git checkout -b feature/my-changes
-# Make changes
-git commit -m "feat: my changes"
-git push origin feature/my-changes
-# Create PR on GitHub
-```
-
-### 2️⃣ GitHub Actions will validate:
-
-- Build Docker image (validation only)
-- Scan image with Trivy
-- Validate Helm charts
-- Report results in PR checks
-
-### 3️⃣ Merge PR to trigger deployment:
-
-- Build Docker image
-- Push to Docker Hub
-- Update Helm values
-- Commit changes back to repo
-
-### 4️⃣ Argo CD will automatically sync:
-
-```bash
-argo app get n8n-dev
-```
+MIT License - see LICENSE file for details
 
 ---
 
-# 📦 Verify Deployment
+## 🙏 Acknowledgments
 
-After deployment, verify the pods are running:
-
-```bash
-# Check dev environment
-kubectl get pods -n n8n-dev
-
-# Check UAT environment
-kubectl get pods -n n8n-uat
-
-# Check production environment
-kubectl get pods -n n8n-prod
-```
-
-You should see pods using the custom image:
-
-```bash
-# Check which image is deployed
-kubectl get deployment -n n8n-dev n8n-api -o jsonpath='{.spec.template.spec.containers[0].image}'
-# Output: nomad1111/n8n-custom:develop
-```
-
----
-
-# 🌐 Access n8n
-
-### Local PC Deployment (Recommended):
-
-**Port-Forward** ⭐ **RECOMMENDED FOR DOCKER DESKTOP** (easiest and most reliable):
-```powershell
-# Dev
-kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
-# Access: http://localhost:5678
-
-# UAT
-kubectl port-forward -n n8n-uat svc/workflow-api-svc 5679:5678
-# Access: http://localhost:5679
-
-# Prod
-kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
-# Access: http://localhost:5680
-```
-
-**Helper Script**: Run `.\start-n8n-port-forwards.ps1` to start all port-forwards automatically.
-
-### Through Ingress (⚠️ May Not Work on Docker Desktop):
-
-**Note**: On Docker Desktop, ingress URLs may timeout due to port 80 accessibility limitations. Port-forwarding is recommended instead.
-
-```
-http://n8n-dev.local
-http://n8n-uat.local
-http://n8n.yourdomain.com (prod)
-```
-
-**See `ACCESS_N8N.md` for detailed access instructions, troubleshooting, and Docker Desktop limitations.**
-
----
-
-# 🏁 Summary
-
-This repository now includes:
-
-✔ Automated build pipeline (GitHub Actions)  
-✔ Branch‑based environments (develop/uat/main)  
-✔ Helm-based config for each environment  
-✔ Argo CD auto-sync with prune and self-heal  
-✔ Dockerized n8n custom build  
-✔ Full CI/CD automation  
-✔ Multi-environment support (dev/uat/prod)  
-✔ Comprehensive documentation  
-
----
-
-# 📚 Documentation
-
-Essential documentation for this project:
-
-- **`SETUP_GUIDE.md`** - **START HERE** - Complete step-by-step installation guide
-  - Install Docker Desktop, kubectl, Helm, Argo CD
-  - Configure GitHub and Docker Hub
-  - Deploy all environments
-
-- **`CI_CD_PROCESS.md`** - CI/CD workflow and branch promotion
-  - PR-based promotion workflow (develop → uat → main)
-  - Automated image build and deployment
-  - Troubleshooting guide
-
-- **`ACCESS_N8N.md`** - How to access n8n
-  - Port-forwarding instructions
-  - Ingress configuration
-  - Troubleshooting access issues
-
-- **`SECURITY_SCANNING.md`** - Security scanning information
-  - CodeQL and Trivy configuration
-  - Understanding scan results
-  - Security best practices
-
----
-
-# ⚠️ Setup Required
-
-**New to this project? Start here:**
-
-1. **Read `SETUP_GUIDE.md`** - Complete step-by-step installation guide
-   - Install Docker Desktop, kubectl, Helm, Argo CD
-   - Configure GitHub and Docker Hub
-   - Deploy all environments
-
-2. **After setup, configure CI/CD:**
-   - Add Docker Hub secrets to GitHub:
-     - `DOCKER_USERNAME` = `nomad1111`
-     - `DOCKER_PASSWORD` = Your Docker Hub access token
-   - See `CI_CD_PROCESS.md` for detailed CI/CD instructions
-
----
-
-# 📄 License
-
-MIT License
+- [n8n](https://n8n.io) - The amazing workflow automation tool
+- [Argo CD](https://argo-cd.readthedocs.io/) - GitOps continuous delivery
+- [Helm](https://helm.sh/) - Kubernetes package manager
+- [8gears/n8n-helm-chart](https://github.com/8gears/n8n-helm-chart) - Inspiration for Helm chart structure

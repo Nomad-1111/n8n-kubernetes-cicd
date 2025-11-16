@@ -145,18 +145,18 @@ jobs:
           echo "✅ All Helm charts validated successfully"
 
       # Step 10: Tag image for Docker Hub repository (only on push)
-      # Formats image name as: nomad1111/n8n-custom:<branch-name>
+      # Formats image name as: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:<branch-name>
       - name: Tag image for Docker Hub
         if: github.event_name == 'push'
         run: |
-          docker tag n8n-custom:${{ steps.branch.outputs.branch }} nomad1111/n8n-custom:${{ steps.branch.outputs.branch }}
+          docker tag n8n-custom:${{ steps.branch.outputs.branch }} YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:${{ steps.branch.outputs.branch }}
 
       # Step 11: Push image to Docker Hub (only on push)
       # Makes image available for Kubernetes to pull
       - name: Push Docker image
         if: github.event_name == 'push'
         run: |
-          docker push nomad1111/n8n-custom:${{ steps.branch.outputs.branch }}
+          docker push YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:${{ steps.branch.outputs.branch }}
 
       # Step 12: Determine which Helm values file to update (only on push)
       # Maps branch name to corresponding values file
@@ -181,14 +181,14 @@ jobs:
           echo "Updating image in $FILE"
           
           # Update repository to use custom image
-          sed -i "s|repository:.*|repository: nomad1111/n8n-custom|" "$FILE"
+          sed -i "s|repository:.*|repository: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME|" "$FILE"
           
           # Update tag to match branch name
           sed -i "s|tag:.*|tag: $BRANCH|" "$FILE"
           
           # Remove TODO comments if switching from official image
-          sed -i '/# TODO: Switch back to nomad1111/d' "$FILE"
-          sed -i '/# repository: nomad1111/d' "$FILE"
+          sed -i '/# TODO: Switch back to YOUR-DOCKERHUB-USERNAME/d' "$FILE"
+          sed -i '/# repository: YOUR-DOCKERHUB-USERNAME/d' "$FILE"
           sed -i '/# tag:.*/d' "$FILE"
           
           # Verify the change
@@ -210,7 +210,7 @@ jobs:
           # Commit only if there are changes (skip if no diff)
           # [skip ci] prevents infinite loop of workflow triggers
           BRANCH="${{ steps.branch.outputs.branch }}"
-          git diff --staged --quiet || git commit -m "chore: update $BRANCH image to nomad1111/n8n-custom:$BRANCH [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: update $BRANCH image to YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:$BRANCH [skip ci]"
           
           # Push changes to trigger Argo CD sync
           git push
