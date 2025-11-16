@@ -85,7 +85,9 @@ database:
 image:
   # Docker image repository (without tag)
   # Custom image built by GitHub Actions CI/CD pipeline
-  repository: nomad1111/n8n-custom
+  # ⚠️ CONFIGURATION REQUIRED: Replace YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME with your Docker Hub repository
+  # See CONFIGURATION.md for details
+  repository: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME
   # Image tag - matches branch name (develop, uat, main)
   # GitHub Actions builds and tags images based on branch
   tag: develop

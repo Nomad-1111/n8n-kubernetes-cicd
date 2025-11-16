@@ -10,18 +10,38 @@
 
 1. [Prerequisites Overview](#prerequisites-overview)
 2. [System Requirements](#system-requirements)
-3. [Step 1: Install Docker Desktop](#step-1-install-docker-desktop-recommended)
+3. [Step 1: Choose and Install Your Kubernetes Platform](#step-1-choose-and-install-your-kubernetes-platform)
+   - [Option A: Docker Desktop](#option-a-docker-desktop-recommended-for-windowsmacos)
+   - [Option B: Minikube](#option-b-minikube-recommended-for-linux-or-advanced-users)
 4. [Step 2: Install kubectl](#step-2-install-kubectl)
 5. [Step 3: Install Helm](#step-3-install-helm)
 6. [Step 4: Install Argo CD](#step-4-install-argo-cd)
 7. [Step 5: Install Ingress Controller](#step-5-install-ingress-controller)
+   - [For Docker Desktop Users](#for-docker-desktop-users)
+   - [For Minikube Users](#for-minikube-users)
 8. [Step 6: Set Up Git and GitHub](#step-6-set-up-git-and-github)
 9. [Step 7: Set Up Docker Hub](#step-7-set-up-docker-hub)
 10. [Step 8: Clone and Configure Repository](#step-8-clone-and-configure-repository)
 11. [Step 9: Deploy Argo CD Applications](#step-9-deploy-argo-cd-applications)
 12. [Step 10: Verify Deployment](#step-10-verify-deployment)
-13. [Alternative: Using Minikube Instead of Docker Desktop](#alternative-using-minikube-instead-of-docker-desktop)
-14. [Troubleshooting](#troubleshooting)
+13. [Troubleshooting](#troubleshooting)
+
+---
+
+## ⚠️ Configuration Required Before Setup
+
+**Before following this guide**, you need to configure the repository with your own values:
+
+### Critical Files to Update:
+
+1. **`.github/workflows/ci-cd.yaml`** - Docker Hub repository name (Lines 152, 159, 184)
+2. **`argo/n8n-dev.yaml`, `argo/n8n-uat.yaml`, `argo/n8n-prod.yaml`** - GitHub repository URLs (Line 23/24)
+3. **`helm/values-dev.yaml`, `helm/values-uat.yaml`, `helm/values-prod.yaml`** - Docker Hub repository name (Line 80-88)
+4. **GitHub Secrets** - Configure `DOCKER_USERNAME` and `DOCKER_PASSWORD` in repository settings
+
+**📖 Complete instructions: See [CONFIGURATION.md](CONFIGURATION.md) for detailed configuration guide with exact file locations and line numbers.**
+
+**⏱️ Estimated time**: 10-15 minutes to configure all files
 
 ---
 
@@ -60,11 +80,22 @@ This guide will help you install and configure:
 
 ---
 
-## Step 1: Install Docker Desktop (Recommended)
+## Step 1: Choose and Install Your Kubernetes Platform
 
-Docker Desktop includes Kubernetes, making it the easiest option for local development.
+You have two options for running Kubernetes locally. Both are fully supported:
 
-### Windows Installation
+- **Docker Desktop**: Integrated solution, good for Windows/macOS users
+- **Minikube**: Separate cluster, better ingress support, good for Linux or advanced users
+
+Choose one option below and follow its instructions.
+
+---
+
+### Option A: Docker Desktop (Recommended for Windows/macOS)
+
+Docker Desktop includes Kubernetes, making it convenient for local development.
+
+#### Windows Installation
 
 1. **Download Docker Desktop**:
    - Go to: https://www.docker.com/products/docker-desktop
@@ -102,7 +133,17 @@ Docker Desktop includes Kubernetes, making it the easiest option for local devel
    #              docker-desktop Ready control-plane 1m v1.27.x
    ```
 
-### macOS Installation
+6. **Set kubectl context** (if needed):
+   ```powershell
+   # Verify you're using Docker Desktop context
+   kubectl config current-context
+   # Should show: docker-desktop
+
+   # If not, switch to it:
+   kubectl config use-context docker-desktop
+   ```
+
+#### macOS Installation
 
 1. **Download Docker Desktop**:
    - Go to: https://www.docker.com/products/docker-desktop
@@ -127,19 +168,138 @@ Docker Desktop includes Kubernetes, making it the easiest option for local devel
    kubectl get nodes
    ```
 
-### Linux Installation
+5. **Set kubectl context** (if needed):
+   ```bash
+   kubectl config current-context
+   # Should show: docker-desktop
+   ```
 
-For Linux, you have two options:
-- **Option A**: Use Minikube (see [Alternative: Using Minikube](#alternative-using-minikube-instead-of-docker-desktop))
-- **Option B**: Install Docker Engine and Kubernetes manually (advanced)
+#### Docker Desktop Notes
 
-**Note**: Docker Desktop for Linux is available but Minikube is often preferred.
+- ✅ Integrated with Docker Desktop UI
+- ✅ Easy to start/stop from Docker Desktop
+- ⚠️ Ingress URLs may not work due to port 80 limitations (use port-forwarding instead)
+- ✅ Good for beginners
+- ✅ Works well on Windows and macOS
+
+---
+
+### Option B: Minikube (Recommended for Linux, or Advanced Users)
+
+Minikube runs a separate Kubernetes cluster and has better ingress support.
+
+#### Windows Installation
+
+1. **Install Minikube**:
+   ```powershell
+   # Using Chocolatey (recommended)
+   choco install minikube
+
+   # Or download manually from:
+   # https://minikube.sigs.k8s.io/docs/start/
+   ```
+
+2. **Verify Installation**:
+   ```powershell
+   minikube version
+   # Should show: minikube version: v1.x.x
+   ```
+
+#### macOS Installation
+
+1. **Install Minikube**:
+   ```bash
+   # Using Homebrew (recommended)
+   brew install minikube
+   ```
+
+2. **Verify Installation**:
+   ```bash
+   minikube version
+   ```
+
+#### Linux Installation
+
+1. **Install Minikube**:
+   ```bash
+   # Download and install
+   curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+   sudo install minikube-linux-amd64 /usr/local/bin/minikube
+   ```
+
+2. **Verify Installation**:
+   ```bash
+   minikube version
+   ```
+
+#### Start Minikube
+
+```powershell
+# Start Minikube (this may take a few minutes on first run)
+minikube start
+
+# For Windows with Hyper-V:
+# minikube start --driver=hyperv
+
+# For Windows with VirtualBox:
+# minikube start --driver=virtualbox
+
+# Verify Minikube is running
+minikube status
+# Should show: host: Running, kubelet: Running, apiserver: Running
+
+# Check Kubernetes nodes
+kubectl get nodes
+# Should show: minikube   Ready   control-plane   1m   v1.27.x
+```
+
+#### Set kubectl context
+
+```powershell
+# Verify you're using Minikube context
+kubectl config current-context
+# Should show: minikube
+
+# If not, switch to it:
+kubectl config use-context minikube
+```
+
+#### Minikube Notes
+
+- ✅ Better ingress support (ingress URLs actually work!)
+- ✅ Separate cluster (doesn't interfere with Docker Desktop)
+- ✅ Good for Linux users
+- ✅ More control over cluster configuration
+- ✅ Can run alongside Docker Desktop
+- ⚠️ Requires separate installation
+- ⚠️ Uses more resources (separate VM)
+
+---
+
+### Which Should You Choose?
+
+**Choose Docker Desktop if:**
+- You're on Windows or macOS
+- You want an integrated solution
+- You're new to Kubernetes
+- You don't need ingress URLs to work
+
+**Choose Minikube if:**
+- You're on Linux
+- You want ingress URLs to work (`http://n8n-dev.local`)
+- You prefer a separate cluster
+- You're already using Minikube
+- You need more control over the cluster
+
+**Note**: You can have both installed, but only use one at a time. Make sure your kubectl context points to the one you're using.
 
 ---
 
 ## Step 2: Install kubectl
 
 kubectl is the Kubernetes command-line tool.
+
+**Note for Minikube users**: Minikube automatically installs kubectl, so you may already have it. Verify with `kubectl version --client`. If it's installed, you can skip this step.
 
 ### Windows Installation
 
@@ -350,9 +510,11 @@ kubectl get applications -n argocd
 
 ## Step 5: Install Ingress Controller
 
-An ingress controller is needed for external access to n8n (optional, but recommended).
+An ingress controller is needed for external access to n8n via URLs (optional, but recommended).
 
-### Install NGINX Ingress Controller
+### For Docker Desktop Users
+
+Docker Desktop requires manual installation of the NGINX Ingress Controller:
 
 ```powershell
 # Install NGINX Ingress Controller
@@ -369,18 +531,81 @@ kubectl get pods -n ingress-nginx
 # Should show: ingress-nginx-controller-xxx   1/1   Running
 ```
 
-### Verify Ingress Controller
+#### Verify Ingress Controller (Docker Desktop)
 
 ```powershell
 # Check ingress controller service
-kubectl get svc -n ingress-nginx
-# Should show: ingress-nginx-controller   LoadBalancer or NodePort
-
-# For Docker Desktop, check if accessible via localhost
 kubectl get svc -n ingress-nginx ingress-nginx-controller
+# Should show: ingress-nginx-controller   NodePort   10.x.x.x   <none>   80:3xxxx/TCP
+
+# Check if port 80 is accessible (may not work on Docker Desktop)
+Test-NetConnection -ComputerName localhost -Port 80
+# If this fails, port 80 is not accessible (Docker Desktop limitation)
 ```
 
-**Note**: For local development, you can skip ingress and use port-forwarding instead (see `ACCESS_N8N.md`).
+**Important for Docker Desktop**: Port 80 may not be accessible, which means ingress URLs (`http://n8n-dev.local`) may timeout. Use port-forwarding instead (see Step 10).
+
+---
+
+### For Minikube Users
+
+Minikube has a built-in ingress addon that's much easier to use:
+
+```powershell
+# Enable Minikube ingress addon
+minikube addons enable ingress
+
+# Wait for it to be ready (may take 1-2 minutes)
+kubectl get pods -n ingress-nginx -w
+# Press Ctrl+C when all pods show "Running"
+
+# Verify installation
+kubectl get pods -n ingress-nginx
+# Should show: ingress-nginx-controller-xxx   1/1   Running
+```
+
+#### Get Minikube IP for Hosts File
+
+```powershell
+# Get Minikube IP address
+minikube ip
+# Example output: 192.168.49.2
+
+# Save this IP - you'll need it for the hosts file
+$minikubeIP = minikube ip
+Write-Host "Minikube IP: $minikubeIP"
+```
+
+#### Verify Ingress Controller (Minikube)
+
+```powershell
+# Check ingress controller service
+kubectl get svc -n ingress-nginx ingress-nginx-controller
+# Should show: ingress-nginx-controller   NodePort or LoadBalancer
+
+# Test ingress access
+minikube service -n ingress-nginx ingress-nginx-controller --url
+# This will show the URL to access the ingress controller
+```
+
+**Important for Minikube**: Ingress URLs will work! You can use `http://n8n-dev.local` after configuring the hosts file (see Step 10).
+
+---
+
+### Verify Ingress Controller (Both Platforms)
+
+```powershell
+# Check ingress controller pods
+kubectl get pods -n ingress-nginx
+
+# Check ingress controller service
+kubectl get svc -n ingress-nginx
+
+# View ingress controller logs (if needed)
+kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller --tail=50
+```
+
+**Note**: For local development, you can skip ingress and use port-forwarding instead (see Step 10). However, Minikube users will find ingress URLs work well.
 
 ---
 
@@ -426,7 +651,7 @@ git config --list
 2. **Fork or Clone Repository**:
    ```powershell
    # Clone the repository
-   git clone https://github.com/Nomad-1111/n8n.git
+   git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
    cd n8n
    ```
 
@@ -486,7 +711,7 @@ docker info | Select-String "Username"
 
 ```powershell
 # Clone the repository
-git clone https://github.com/Nomad-1111/n8n.git
+git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
 cd n8n
 
 # Check current branch
@@ -501,7 +726,7 @@ ls
 ### Configure GitHub Secrets (Required for CI/CD)
 
 1. **Go to GitHub Repository**:
-   - Navigate to: https://github.com/Nomad-1111/n8n
+   - Navigate to: https://github.com/YOUR-USERNAME/YOUR-REPO-NAME
    - Or your forked repository
 
 2. **Add Secrets**:
@@ -509,7 +734,7 @@ ls
    - Click **"New repository secret"**
    - Add two secrets:
      - **Name**: `DOCKER_USERNAME`
-       - **Value**: `nomad1111` (or your Docker Hub username)
+       - **Value**: `YOUR-DOCKERHUB-USERNAME` (or your Docker Hub username)
      - **Name**: `DOCKER_PASSWORD`
        - **Value**: (Your Docker Hub access token from Step 7)
 
@@ -614,7 +839,11 @@ kubectl get svc -n n8n-prod
 # Should all show: workflow-api-svc   ClusterIP   10.x.x.x   5678/TCP
 ```
 
-### Access n8n via Port-Forward
+### Access n8n
+
+#### Option 1: Port-Forward (Works for Both Docker Desktop and Minikube) ⭐ RECOMMENDED FOR DOCKER DESKTOP
+
+Port-forwarding is the most reliable method for Docker Desktop and also works great for Minikube:
 
 ```powershell
 # Dev environment (in separate terminal)
@@ -630,6 +859,53 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 # Access: http://localhost:5680
 ```
 
+**Helper Script**: Run `.\start-n8n-port-forwards.ps1` from the repository root to start all port-forwards automatically.
+
+---
+
+#### Option 2: Ingress URLs (Minikube Only - Actually Works!)
+
+**For Minikube users**, ingress URLs will work properly:
+
+1. **Get Minikube IP**:
+   ```powershell
+   minikube ip
+   # Example: 192.168.49.2
+   ```
+
+2. **Update Hosts File** (run PowerShell as Administrator):
+   ```powershell
+   $minikubeIP = minikube ip
+   Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "$minikubeIP  n8n-dev.local"
+   Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "$minikubeIP  n8n-uat.local"
+   ipconfig /flushdns
+   ```
+
+3. **Access n8n**:
+   - Dev: `http://n8n-dev.local`
+   - UAT: `http://n8n-uat.local`
+   - Prod: `http://n8n.yourdomain.com` (if configured)
+
+**Note for Docker Desktop users**: Ingress URLs may timeout due to port 80 limitations. Use port-forwarding (Option 1) instead.
+
+---
+
+#### Option 3: Minikube Service Command (Minikube Only)
+
+Minikube provides a convenient command to open services:
+
+```powershell
+# Open dev environment in browser
+minikube service -n n8n-dev workflow-api-svc
+
+# Or get the URL
+minikube service -n n8n-dev workflow-api-svc --url
+```
+
+---
+
+**See `ACCESS_N8N.md` for detailed access instructions and troubleshooting.**
+
 ### Verify n8n is Working
 
 1. **Open Browser**: http://localhost:5678
@@ -638,50 +914,27 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 
 ---
 
-## Alternative: Using Minikube Instead of Docker Desktop
+## Platform-Specific Notes
 
-If you prefer Minikube or are on Linux:
+### Using Minikube
 
-### Install Minikube
+If you're using Minikube (see [Step 1: Option B](#option-b-minikube-recommended-for-linux-or-advanced-users)), note that:
 
-**Windows**:
-```powershell
-# Using Chocolatey
-choco install minikube
+- Minikube has better ingress support than Docker Desktop
+- Ingress URLs (`http://n8n-dev.local`) will work properly with Minikube
+- Use `minikube ip` to get the IP for your hosts file
+- Use `minikube service` command for easy access to services
+- See [Step 5: For Minikube Users](#for-minikube-users) for ingress setup
+- See [Step 10: Option 2](#option-2-ingress-urls-minikube-only---actually-works) for access methods
 
-# Or download from: https://minikube.sigs.k8s.io/docs/start/
-```
+### Using Docker Desktop
 
-**macOS**:
-```bash
-brew install minikube
-```
+If you're using Docker Desktop (see [Step 1: Option A](#option-a-docker-desktop-recommended-for-windowsmacos)), note that:
 
-**Linux**:
-```bash
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-```
-
-### Start Minikube
-
-```powershell
-# Start Minikube
-minikube start
-
-# Verify
-kubectl get nodes
-# Should show: minikube   Ready   control-plane   1m   v1.27.x
-
-# Enable ingress addon
-minikube addons enable ingress
-```
-
-### Continue with Steps 2-10
-
-After Minikube is running, continue with the rest of the setup guide starting from [Step 2: Install kubectl](#step-2-install-kubectl).
-
-**Note**: Minikube automatically installs kubectl, so you may skip Step 2.
+- Port-forwarding is the most reliable access method
+- Ingress URLs may timeout due to port 80 limitations
+- See [Step 5: For Docker Desktop Users](#for-docker-desktop-users) for ingress setup
+- See [Step 10: Option 1](#option-1-port-forward-works-for-both-docker-desktop-and-minikube--recommended-for-docker-desktop) for access methods
 
 ---
 
