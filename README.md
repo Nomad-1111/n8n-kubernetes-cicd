@@ -218,6 +218,30 @@ Developer Commit / PR
 
 ---
 
+## ⚠️ Before You Start - Configuration Required
+
+**IMPORTANT**: This repository uses placeholders that must be replaced before use.
+
+### Quick Configuration Checklist
+
+Before deploying, you **must** update these files:
+
+1. **`.github/workflows/ci-cd.yaml`** (Lines 152, 159, 184)
+   - Replace `YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME` with your Docker Hub repository
+
+2. **`argo/n8n-*.yaml`** (All three files - Line 23/24)
+   - Replace `YOUR-USERNAME/YOUR-REPO-NAME` with your GitHub repository URL
+
+3. **`helm/values-*.yaml`** (All three files - Line 80-88)
+   - Replace `YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME` with your Docker Hub repository
+
+4. **GitHub Secrets** (Configure in GitHub Settings)
+   - Add `DOCKER_USERNAME` and `DOCKER_PASSWORD` secrets
+
+**📖 See [CONFIGURATION.md](CONFIGURATION.md) for detailed step-by-step instructions with exact line numbers and examples.**
+
+---
+
 ## 📚 Documentation
 
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Complete installation and setup guide

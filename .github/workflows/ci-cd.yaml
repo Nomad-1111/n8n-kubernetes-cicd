@@ -146,6 +146,8 @@ jobs:
 
       # Step 10: Tag image for Docker Hub repository (only on push)
       # Formats image name as: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:<branch-name>
+      # ⚠️ CONFIGURATION REQUIRED: Replace YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME with your Docker Hub repository
+      # See CONFIGURATION.md for details
       - name: Tag image for Docker Hub
         if: github.event_name == 'push'
         run: |

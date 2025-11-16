@@ -4,6 +4,27 @@ This guide lists all hardcoded references that need to be updated before using t
 
 ---
 
+## 📁 Files That Need Configuration
+
+```
+📦 Repository
+├── 🔴 .github/workflows/ci-cd.yaml          (Lines 152, 159, 184)
+├── 🔴 argo/
+│   ├── n8n-dev.yaml                         (Line 24)
+│   ├── n8n-uat.yaml                         (Line 23)
+│   └── n8n-prod.yaml                        (Line 23)
+├── 🔴 helm/
+│   ├── values-dev.yaml                      (Line 88)
+│   ├── values-uat.yaml                      (Line 80)
+│   └── values-prod.yaml                     (Line 81)
+└── 🟡 helm/values-prod.yaml                 (Line 105 - domain, optional)
+```
+
+🔴 = Critical (must update)  
+🟡 = Optional (recommended)
+
+---
+
 ## 🔴 Critical Configuration (Must Update)
 
 ### 1. Docker Hub Repository

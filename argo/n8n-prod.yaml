@@ -20,6 +20,8 @@ spec:
   # Source configuration - defines where to get the application manifests
   source:
     # Git repository URL containing the Helm chart
+    # ⚠️ CONFIGURATION REQUIRED: Replace YOUR-USERNAME/YOUR-REPO-NAME with your GitHub repository
+    # See CONFIGURATION.md for details
     repoURL: https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
     # Git branch or tag to monitor for changes
     # 'main' branch triggers deployments to production environment

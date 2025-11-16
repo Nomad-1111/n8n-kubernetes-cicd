@@ -28,6 +28,23 @@
 
 ---
 
+## ⚠️ Configuration Required Before Setup
+
+**Before following this guide**, you need to configure the repository with your own values:
+
+### Critical Files to Update:
+
+1. **`.github/workflows/ci-cd.yaml`** - Docker Hub repository name (Lines 152, 159, 184)
+2. **`argo/n8n-dev.yaml`, `argo/n8n-uat.yaml`, `argo/n8n-prod.yaml`** - GitHub repository URLs (Line 23/24)
+3. **`helm/values-dev.yaml`, `helm/values-uat.yaml`, `helm/values-prod.yaml`** - Docker Hub repository name (Line 80-88)
+4. **GitHub Secrets** - Configure `DOCKER_USERNAME` and `DOCKER_PASSWORD` in repository settings
+
+**📖 Complete instructions: See [CONFIGURATION.md](CONFIGURATION.md) for detailed configuration guide with exact file locations and line numbers.**
+
+**⏱️ Estimated time**: 10-15 minutes to configure all files
+
+---
+
 ## Prerequisites Overview
 
 This guide will help you install and configure:
