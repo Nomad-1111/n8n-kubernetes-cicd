@@ -214,7 +214,27 @@ Developer Commit / PR
 4. **Deploy**:
    ```bash
    kubectl apply -f argo/n8n-dev.yaml
-   ```
+```
+
+---
+
+## 🌿 Branch Structure
+
+This repository uses a **three-branch structure** for multi-environment deployment:
+
+- **`develop`** → Deploys to **dev** environment
+- **`uat`** → Deploys to **UAT** environment  
+- **`main`** → Deploys to **production** environment
+
+**All three branches are pre-created** in this repository. The CI/CD workflow and Argo CD applications are configured to use this structure:
+
+- **CI/CD Workflow** (`.github/workflows/ci-cd.yaml`) triggers on pushes to `develop`, `uat`, and `main`
+- **Argo CD Applications** (`argo/n8n-*.yaml`) monitor their respective branches for changes
+- **Branch Promotion Flow**: `develop` → `uat` → `main` (via pull requests)
+
+**Note**: If you prefer a different branch structure, you'll need to update:
+- `.github/workflows/ci-cd.yaml` (workflow branch triggers)
+- `argo/n8n-dev.yaml`, `argo/n8n-uat.yaml`, `argo/n8n-prod.yaml` (targetRevision)
 
 ---
 

@@ -200,7 +200,10 @@ grep -r "Australia/Sydney" .
 - **Service Account Names**: `n8n-dev-sa`, `n8n-uat-sa`, `n8n-prod-sa` - These are environment-specific and can be changed if needed
 - **Namespace Names**: `n8n-dev`, `n8n-uat`, `n8n-prod` - These are environment-specific and can be changed if needed
 - **Argo CD Namespace**: `argocd` - This is standard and typically doesn't need to change
-- **Branch Names**: `develop`, `uat`, `main` - These can be changed, but you'll need to update Argo CD applications and CI/CD workflow
+- **Branch Names**: `develop`, `uat`, `main` - **All three branches are pre-created in the repository**. These can be changed, but you'll need to:
+  - Update `.github/workflows/ci-cd.yaml` (workflow branch triggers)
+  - Update `argo/n8n-dev.yaml`, `argo/n8n-uat.yaml`, `argo/n8n-prod.yaml` (targetRevision)
+  - Create the new branches if they don't exist
 
 ---
 
