@@ -63,7 +63,7 @@ spec:
       containers:
         - name: n8n
           # Container image - format: repository:tag
-          # Example: nomad1111/n8n-custom:develop
+          # Example: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME:develop
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           # Image pull policy: Always, IfNotPresent, or Never
           # Always: Always pull latest image (recommended for CI/CD)
