@@ -20,6 +20,10 @@ serviceAccount:
 replicas: 2
 timezone: Australia/Sydney
 
+# Secure cookie configuration
+# Set to true for production (HTTPS access required)
+secureCookie: true
+
 # ----------------------------
 # Database Configuration
 # ----------------------------
@@ -105,8 +109,36 @@ ingress:
   host: n8n.yourdomain.com    # <--- UPDATE THIS with your real domain
   # Production should use HTTPS for security
   protocol: https  # http or https (use https for production)
-  # TODO: Configure TLS certificates (Let's Encrypt, cert-manager, etc.)
-  tls: []
+  # TLS configuration (for HTTPS)
+  # Configured for automatic certificate management with cert-manager
+  tls:
+    enabled: true
+    # Secret name where the certificate will be stored
+    secretName: n8n-prod-tls
+    # Certificate issuer configuration
+    #
+    # OPTION 1: Self-signed (current - works for local/development)
+    # Use this for local development or when you don't have a real domain.
+    # Note: Browsers will show security warnings (normal for self-signed certs).
+    issuer:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
+    #
+    # OPTION 2: Let's Encrypt (for production with real domain)
+    # Use this when you have a real, publicly accessible domain.
+    # Prerequisites:
+    #   1. Real domain name (e.g., n8n.yourdomain.com)
+    #   2. DNS A record pointing to your cluster's ingress controller IP
+    #   3. Public accessibility (Let's Encrypt must reach your cluster on port 80)
+    #   4. Run: .\scripts\setup-letsencrypt.ps1 -Email "your@email.com" -Environment "prod"
+    #   5. Update ingress.host above to your real domain
+    #
+    # Then uncomment and use:
+    # issuer:
+    #   name: letsencrypt-prod  # or "letsencrypt-staging" for testing
+    #   kind: ClusterIssuer
+    #
+    # See docs/LETSENCRYPT_SETUP.md for detailed instructions.
 
 # ----------------------------
 # Service Configuration

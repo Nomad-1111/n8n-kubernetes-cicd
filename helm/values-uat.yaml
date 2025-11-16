@@ -21,6 +21,11 @@ serviceAccount:
 replicas: 1
 timezone: Australia/Sydney
 
+# Secure cookie configuration
+# Set to false for local development (HTTP access)
+# Set to true for production (HTTPS access)
+secureCookie: true
+
 # ----------------------------
 # Database Configuration
 # ----------------------------
@@ -101,8 +106,17 @@ ingress:
   className: nginx
   # UAT hostname - add to hosts file for local access: 127.0.0.1 n8n-uat.local
   host: n8n-uat.local
-  protocol: http  # http or https
-  tls: []
+  protocol: https  # http or https
+  # TLS configuration (for HTTPS)
+  # Configured for automatic certificate management with cert-manager
+  tls:
+    enabled: true
+    # Secret name where the certificate will be stored
+    secretName: n8n-uat-tls
+    # Certificate issuer configuration
+    issuer:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
 
 # ----------------------------
 # Service Configuration

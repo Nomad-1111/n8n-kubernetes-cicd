@@ -293,9 +293,38 @@ kubectl get deployment -n n8n-dev n8n-api -o jsonpath='{.spec.template.spec.cont
 
 # 🌐 Access n8n
 
-### Local PC Deployment (Recommended):
+### Production-Like Access via HTTPS Ingress (Recommended) ⭐
 
-**Port-Forward** ⭐ **RECOMMENDED FOR DOCKER DESKTOP** (easiest and most reliable):
+**One-time setup for production-like HTTPS access that survives PC standby/resume:**
+
+```powershell
+# Set up HTTPS with cert-manager
+.\scripts\setup-https.ps1
+
+# Start minikube tunnel (keep running)
+minikube tunnel
+
+# Add to hosts file (as Administrator):
+# 127.0.0.1  n8n-dev.local
+# 127.0.0.1  n8n-uat.local
+# 127.0.0.1  n8n-prod.local
+# Then: ipconfig /flushdns
+
+# Trust certificates to remove browser warnings (optional, run as Administrator)
+.\scripts\trust-certificates.ps1
+```
+
+**Access**:
+- Dev: `https://n8n-dev.local`
+- UAT: `https://n8n-uat.local`
+- Prod: `https://n8n-prod.local`
+
+**Benefits**: Full HTTPS encryption, production-like setup, survives standby, secure cookies enabled.
+
+### Alternative: Port-Forward (Quick Testing Fallback)
+
+**Use this for quick access without setup:**
+
 ```powershell
 # Dev
 kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
@@ -312,17 +341,9 @@ kubectl port-forward -n n8n-prod svc/workflow-api-svc 5680:5678
 
 **Helper Script**: Run `.\start-n8n-port-forwards.ps1` to start all port-forwards automatically.
 
-### Through Ingress (⚠️ May Not Work on Docker Desktop):
+**⚠️ Limitation**: Port-forwarding terminates when your PC goes to standby.
 
-**Note**: On Docker Desktop, ingress URLs may timeout due to port 80 accessibility limitations. Port-forwarding is recommended instead.
-
-```
-http://n8n-dev.local
-http://n8n-uat.local
-http://n8n.yourdomain.com (prod)
-```
-
-**See `ACCESS_N8N.md` for detailed access instructions, troubleshooting, and Docker Desktop limitations.**
+**See `ACCESS_N8N.md` for detailed access instructions, troubleshooting, and setup guide.**
 
 ---
 

@@ -1,77 +1,67 @@
 # How to Access n8n (Local PC Deployment)
 
-## Problem
+## Production-Like Access via HTTPS Ingress (Recommended) ⭐
 
-When trying to access `n8n-dev.local`, you may get:
-```
-DNS_PROBE_FINISHED_NXDOMAIN
-This site can't be reached
-```
-or
-```
-n8n-dev.local took too long to respond
-```
+**This is the recommended approach for production-like setup with HTTPS that survives PC standby/resume.**
 
-**Root Cause**: On Docker Desktop, port 80 is typically not accessible, which prevents ingress URLs from working even with proper hosts file configuration. This is a known Docker Desktop limitation.
+### One-Time Setup
 
-**Solution**: Use port-forwarding (Option 2) - it's the most reliable method for Docker Desktop and works immediately without any configuration.
-
----
-
-## Quick Solution: Port Forward (Easiest for Local Testing)
-
-**This is the fastest way to access n8n on your local PC:**
-
-```powershell
-# Open PowerShell and run:
-kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
-```
-
-Then open your browser and go to: **http://localhost:5678**
-
-**Note**: Keep the PowerShell window open while using n8n. Press `Ctrl+C` to stop port-forwarding.
-
----
-
-## Solution Options
-
-### Option 1: Add to Windows Hosts File (⚠️ May Not Work on Docker Desktop)
-
-**⚠️ Important**: On Docker Desktop, port 80 is typically not accessible, so ingress URLs (`http://n8n-dev.local`) may timeout even with proper hosts file configuration. **Use Option 2 (Port-Forward) instead** for reliable access.
-
-If you still want to try ingress access:
-
-1. **Open Notepad as Administrator**:
-   - Press `Win + X`
-   - Select "Windows Terminal (Admin)" or "Command Prompt (Admin)"
-   - Or right-click Notepad → "Run as administrator"
-
-2. **Open the hosts file**:
-   - Navigate to: `C:\Windows\System32\drivers\etc\hosts`
-   - Open with Notepad
-
-3. **Add the following lines**:
-   ```
-   127.0.0.1  n8n-dev.local
-   127.0.0.1  n8n-uat.local
-   ```
-
-4. **Save the file** (you may need to save as "All Files" type)
-
-5. **Flush DNS cache**:
+1. **Set up HTTPS with cert-manager**:
    ```powershell
-   ipconfig /flushdns
+   .\scripts\setup-https.ps1
    ```
+   This installs cert-manager and creates self-signed certificates for all environments.
 
-6. **Test access**: `http://n8n-dev.local`
-   - ⚠️ If this times out, port 80 is not accessible (Docker Desktop limitation)
-   - ✅ Use Option 2 (Port-Forward) instead - it works reliably
+2. **Start minikube tunnel** (required for Minikube):
+   ```powershell
+   # Keep this running in a separate terminal
+   minikube tunnel
+   ```
+   This makes services accessible on localhost.
+
+3. **Add entries to hosts file** (as Administrator):
+   - Open `C:\Windows\System32\drivers\etc\hosts` as Administrator
+   - Add the following lines:
+     ```
+     127.0.0.1  n8n-dev.local
+     127.0.0.1  n8n-uat.local
+     127.0.0.1  n8n-prod.local
+     ```
+   - Save the file
+   - Flush DNS cache:
+     ```powershell
+     ipconfig /flushdns
+     ```
+
+4. **Trust certificates (optional - removes browser warnings)**:
+   ```powershell
+   # Run as Administrator
+   .\scripts\trust-certificates.ps1
+   ```
+   This installs certificates to Windows certificate store so browsers trust them.
+
+5. **Access n8n via HTTPS**:
+   - Dev: `https://n8n-dev.local`
+   - UAT: `https://n8n-uat.local`
+   - Prod: `https://n8n-prod.local`
+
+   **Note**: If you didn't run the trust script, you'll need to accept the self-signed certificate warning in your browser (this is normal).
+
+### Benefits
+
+- ✅ **Full HTTPS encryption** - Secure TLS/SSL connections
+- ✅ **Production-like setup** - Uses ingress with certificates, not port-forwarding
+- ✅ **Survives PC standby/resume** - Kubernetes service, not kubectl process
+- ✅ **Clean URLs with hostnames** - Professional appearance
+- ✅ **No terminal windows needed** - Access directly from browser (except minikube tunnel)
+- ✅ **Works like production** - Same configuration as real Kubernetes clusters
+- ✅ **Secure cookies enabled** - Production-ready security
 
 ---
 
-### Option 2: Use kubectl Port-Forward (Quick Access) ⭐ **RECOMMENDED FOR DOCKER DESKTOP**
+## Alternative: Port-Forward (Quick Testing Fallback)
 
-This bypasses ingress and directly forwards the service port. **This is the most reliable method for Docker Desktop and works immediately without any configuration:**
+**Use this if you need quick access without setup, or if ingress doesn't work:**
 
 ```powershell
 # For dev environment
@@ -91,9 +81,13 @@ Then access:
 
 **Note**: Keep the PowerShell window open while using n8n. Press `Ctrl+C` to stop port-forwarding.
 
-**Pro Tip**: You can run multiple port-forwards in separate terminal windows for different environments.
-
 **Helper Script**: A helper script `start-n8n-port-forwards.ps1` is available in the repository root to start all port-forwards automatically.
+
+**⚠️ Limitation**: Port-forwarding terminates when your PC goes to standby, requiring manual restart.
+
+---
+
+## Solution Options (Detailed)
 
 ---
 
@@ -295,55 +289,107 @@ minikube service ingress-nginx -n ingress-nginx
 
 **Note**: For local PC development, **port-forwarding (Option 2) is usually easier** than setting up ingress.
 
-### Can't Access After Adding to Hosts File (Docker Desktop Issue)
+### Trusting Self-Signed Certificates
 
-**Common Issue**: On Docker Desktop, `http://n8n-dev.local` times out even with correct hosts file configuration.
-
-**Root Cause**: Port 80 is not accessible on Docker Desktop, which prevents ingress from working.
-
-**Solution**: Use port-forwarding instead (Option 2). It's more reliable and works immediately:
+**To remove browser security warnings**, install certificates to Windows certificate store:
 
 ```powershell
-kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
-# Then access: http://localhost:5678
+# Run as Administrator
+.\scripts\trust-certificates.ps1
 ```
 
-**If you still want to troubleshoot ingress**:
+This will:
+- Export certificates from Kubernetes
+- Install them to Windows Trusted Root Certification Authorities
+- Remove browser security warnings
 
-1. **Verify hosts file syntax**:
-   - No extra spaces
-   - IP address first, then hostname
-   - One entry per line
-   - Should use `127.0.0.1` not `192.168.x.x`
+After installation, **restart your browser completely** and access URLs will work without warnings.
 
-2. **Check if DNS resolves**:
+### Troubleshooting Ingress Access
+
+**If you can't access via `https://n8n-dev.local`:**
+
+1. **Verify minikube tunnel is running**:
+   ```powershell
+   # Check if tunnel process is running
+   # You should have a terminal with: minikube tunnel
+   # If not, start it: minikube tunnel
+   ```
+
+2. **Verify ingress controller service**:
+   ```powershell
+   kubectl get svc -n ingress-nginx ingress-nginx-controller
+   ```
+   Should show `LoadBalancer` type with `EXTERNAL-IP: 127.0.0.1`. If not, configure it:
+   ```powershell
+   kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"type":"LoadBalancer"}}'
+   # Then start: minikube tunnel
+   ```
+
+2. **Verify hosts file entries**:
+   - Open `C:\Windows\System32\drivers\etc\hosts` as Administrator
+   - Verify these lines exist:
+     ```
+     127.0.0.1  n8n-dev.local
+     127.0.0.1  n8n-uat.local
+     127.0.0.1  n8n-prod.local
+     ```
+   - No extra spaces, IP address first, then hostname
+   - Flush DNS: `ipconfig /flushdns`
+
+3. **Check if DNS resolves**:
    ```powershell
    ping n8n-dev.local
    # Should resolve to 127.0.0.1
    ```
 
-3. **Check if port 80 is accessible**:
+4. **Check if port 443 (HTTPS) is accessible**:
    ```powershell
-   Test-NetConnection -ComputerName localhost -Port 80
-   # If this fails, port 80 is not accessible (Docker Desktop limitation)
+   Test-NetConnection -ComputerName localhost -Port 443
+   # Should succeed
    ```
 
-4. **Check Windows Firewall**:
-   - May be blocking connections
-   - Temporarily disable to test
+5. **Check if certificates are ready**:
+   ```powershell
+   kubectl get certificates -A
+   # Should show certificates with READY: True
+   ```
 
-5. **Verify ingress controller is running**:
+6. **Verify ingress controller is running**:
    ```powershell
    kubectl get pods -n ingress-nginx
    kubectl get svc -n ingress-nginx ingress-nginx-controller
    ```
+
+7. **Check ingress resources**:
+   ```powershell
+   kubectl get ingress -n n8n-dev
+   kubectl describe ingress -n n8n-dev n8n-ingress
+   ```
+
+8. **Check Windows Firewall**:
+   - May be blocking connections
+   - Temporarily disable to test
+
+**If ingress still doesn't work**, use port-forwarding as a fallback (see Alternative section above).
 
 ---
 
 ## Quick Reference Commands (Local PC)
 
 ```powershell
-# ⭐ Port forward (easiest for local PC - RECOMMENDED)
+# ⭐ HTTPS Ingress Access (Production-like - RECOMMENDED)
+# One-time setup:
+.\scripts\setup-https.ps1
+minikube tunnel  # Keep running in separate terminal
+.\scripts\trust-certificates.ps1  # Run as Administrator (optional)
+
+# Then access:
+# Dev:  https://n8n-dev.local
+# UAT:  https://n8n-uat.local
+# Prod: https://n8n-prod.local
+
+# Alternative: Port forward (quick testing fallback)
 # Dev
 kubectl port-forward -n n8n-dev svc/workflow-api-svc 5678:5678
 # Access: http://localhost:5678

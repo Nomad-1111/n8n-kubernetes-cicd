@@ -31,6 +31,11 @@ replicas: 1
 # Affects workflow execution times and scheduled triggers
 timezone: Australia/Sydney
 
+# Secure cookie configuration
+# Set to false for local development (HTTP access)
+# Set to true for production (HTTPS access)
+secureCookie: true
+
 # ----------------------------
 # Database Configuration
 # ----------------------------
@@ -124,10 +129,17 @@ ingress:
   host: n8n-dev.local
   # Protocol: http or https
   # Use http for local development, https for production
-  protocol: http  # http or https
+  protocol: https  # http or https
   # TLS configuration (for HTTPS)
-  # Uncomment and configure for production with SSL certificates
-  tls: []
+  # Configured for automatic certificate management with cert-manager
+  tls:
+    enabled: true
+    # Secret name where the certificate will be stored
+    secretName: n8n-dev-tls
+    # Certificate issuer configuration
+    issuer:
+      name: selfsigned-issuer
+      kind: ClusterIssuer
 
 # ----------------------------
 # Service Configuration

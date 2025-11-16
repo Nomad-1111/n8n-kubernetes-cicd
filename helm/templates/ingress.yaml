@@ -15,11 +15,24 @@ metadata:
   # Standard Kubernetes labels for resource organization
   labels:
     {{- include "n8n.labels" . | nindent 4 }}
+  {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.issuer }}
+  # Cert-manager annotations for automatic certificate management
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.issuer.name }}
+  {{- end }}
 spec:
   # Ingress class - specifies which ingress controller should handle this
   # Common values: nginx, cilium, traefik, etc.
   # Must match an installed ingress controller in your cluster
   ingressClassName: {{ .Values.ingress.className }}
+  
+  # TLS configuration (for HTTPS)
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tls.secretName | default (printf "%s-tls" .Values.ingress.host) }}
+  {{- end }}
   
   # Ingress rules - defines routing rules for incoming traffic
   rules:

@@ -380,11 +380,104 @@ kubectl get svc -n ingress-nginx
 kubectl get svc -n ingress-nginx ingress-nginx-controller
 ```
 
-**Note**: For local development, you can skip ingress and use port-forwarding instead (see `ACCESS_N8N.md`).
+### Configure Ingress Controller for Minikube/Docker Desktop
+
+**Important**: For Minikube, we use LoadBalancer type with `minikube tunnel` to expose services on localhost. This provides a production-like setup that survives PC standby/resume.
+
+1. **Configure ingress controller** (if using Docker Desktop):
+   ```powershell
+   .\scripts\fix-ingress-controller.ps1
+   ```
+   For Minikube, the service should be LoadBalancer type (already configured).
+
+2. **Start minikube tunnel** (required for Minikube):
+   ```powershell
+   # Keep this running in a separate terminal
+   minikube tunnel
+   ```
+   This makes services accessible on localhost.
+
+3. **Add entries to hosts file** (if not already done):
+   - Open `C:\Windows\System32\drivers\etc\hosts` as Administrator
+   - Add the following lines:
+     ```
+     127.0.0.1  n8n-dev.local
+     127.0.0.1  n8n-uat.local
+     127.0.0.1  n8n-prod.local
+     ```
+   - Save the file
+   - Flush DNS cache:
+     ```powershell
+     ipconfig /flushdns
+     ```
+
+### Step 6: Set Up HTTPS with cert-manager
+
+**Recommended**: Set up HTTPS for secure access to n8n instances.
+
+1. **Install cert-manager and create certificate issuer**:
+   ```powershell
+   .\scripts\setup-https.ps1
+   ```
+
+2. **Wait for certificates to be generated** (automatic):
+   ```powershell
+   # Check certificate status
+   kubectl get certificates -A
+   
+   # Check certificate requests
+   kubectl get certificaterequests -A
+   ```
+
+3. **Access n8n via HTTPS**:
+   - Dev: `https://n8n-dev.local`
+   - UAT: `https://n8n-uat.local`
+   - Prod: `https://n8n-prod.local`
+
+   **Note**: You'll need to accept the self-signed certificate warning in your browser (this is normal for local development).
+
+**Benefits of HTTPS setup**:
+- ✅ Full TLS/SSL encryption
+- ✅ Secure cookies enabled
+- ✅ Production-like security
+- ✅ Automatic certificate management
+- ✅ Survives PC standby/resume
+
+**Note**: The Helm values files are already configured for HTTPS. After running the setup script, Argo CD will automatically sync and certificates will be generated.
+
+### Optional: Let's Encrypt for Production
+
+If you have a real, publicly accessible domain and want trusted certificates (no browser warnings):
+
+1. **See detailed guide**: `docs/LETSENCRYPT_SETUP.md` for complete instructions
+
+2. **Quick setup**:
+   ```powershell
+   # Set up Let's Encrypt issuer (start with staging for testing)
+   .\scripts\setup-letsencrypt.ps1 -Email "your@email.com" -Environment "staging"
+   
+   # Update helm/values-prod.yaml:
+   # - Change ingress.host to your real domain (e.g., n8n.yourdomain.com)
+   # - Change tls.issuer.name to "letsencrypt-prod" (or "letsencrypt-staging" for testing)
+   # - Ensure DNS A record points to your cluster's ingress controller
+   ```
+
+3. **Requirements**:
+   - Real domain name (not `.local` hostnames)
+   - DNS A record pointing to your cluster
+   - Public accessibility (Let's Encrypt must reach your cluster on port 80)
+
+4. **Benefits**:
+   - ✅ No browser security warnings
+   - ✅ Fully trusted certificates
+   - ✅ Automatic renewal (90-day certificates)
+   - ✅ Free and production-ready
+
+**Note**: Self-signed certificates are fine for local development. Use Let's Encrypt when you have a real domain and need trusted certificates.
 
 ---
 
-## Step 6: Set Up Git and GitHub
+## Step 7: Set Up Git and GitHub
 
 ### Install Git
 
@@ -442,7 +535,7 @@ git config --list
 
 ---
 
-## Step 7: Set Up Docker Hub
+## Step 8: Set Up Docker Hub
 
 Docker Hub is where custom n8n images are stored.
 
@@ -480,7 +573,7 @@ docker info | Select-String "Username"
 
 ---
 
-## Step 8: Clone and Configure Repository
+## Step 9: Clone and Configure Repository
 
 ### Clone Repository
 
@@ -536,7 +629,7 @@ If you forked the repository, update these files:
 
 ---
 
-## Step 9: Deploy Argo CD Applications
+## Step 10: Deploy Argo CD Applications
 
 Argo CD applications define what to deploy from Git.
 
@@ -586,7 +679,7 @@ kubectl get applications -n argocd -w
 
 ---
 
-## Step 10: Verify Deployment
+## Step 11: Verify Deployment
 
 ### Check Pods Are Running
 

@@ -115,6 +115,14 @@ spec:
             - name: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
               value: "true"
             
+            # Secure cookie configuration
+            # Disable secure cookies for local development (HTTP access)
+            # Set to "false" for local dev, "true" for production (HTTPS)
+            {{- if .Values.secureCookie }}
+            - name: N8N_SECURE_COOKIE
+              value: {{ .Values.secureCookie | quote }}
+            {{- end }}
+            
             # Database configuration
             # Supports both SQLite (default) and PostgreSQL
             - name: DB_TYPE
