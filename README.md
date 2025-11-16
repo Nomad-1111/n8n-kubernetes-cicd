@@ -10,6 +10,31 @@ This repository contains a fully automated **multi-environment CI/CD pipeline** 
 
 ---
 
+# ⚠️ Important Testing & Environment Notes
+
+**Testing Environment Disclaimer:**
+
+This deployment solution has been **tested and validated on local PC environments** using:
+- Docker Desktop with Kubernetes (Windows/macOS)
+- Minikube (Linux/Windows/macOS)
+- Local development setups
+
+**Important Considerations:**
+
+- ✅ **Local Development**: Fully tested and working on local PC environments
+- ⚠️ **Production Cloud**: This solution is designed for local development and testing. For production cloud deployments (AWS, Azure, GCP, etc.), you may need to:
+  - Adjust ingress controller configurations for cloud load balancers
+  - Configure cloud-specific storage classes for persistent volumes
+  - Update network policies and security groups
+  - Modify DNS and certificate management for public domains
+  - Review resource limits and scaling configurations
+- 📝 **Adaptation Required**: While the core CI/CD pipeline and Helm charts are production-ready, cloud-specific infrastructure components may require customization
+- 🔒 **Security**: Review and adapt security configurations (RBAC, network policies, secrets management) for your specific cloud environment
+
+**Recommendation**: Use this as a foundation and adapt it to your specific cloud provider's requirements and best practices.
+
+---
+
 # 🚀 Architecture Overview
 
 ```
@@ -359,6 +384,8 @@ This repository now includes:
 ✔ Full CI/CD automation  
 ✔ Multi-environment support (dev/uat/prod)  
 ✔ Comprehensive documentation  
+
+**⚠️ Testing Note**: This solution has been tested on local PC environments. For production cloud deployments, adapt configurations to your cloud provider's requirements.
 
 ---
 
