@@ -22,15 +22,70 @@ replicas: 1
 timezone: Australia/Sydney
 
 # ----------------------------
+# Database Configuration
+# ----------------------------
+# Database type: sqlite or postgresdb
+# SQLite: Simple, file-based (default, good for single-instance deployments)
+# PostgreSQL: Recommended for production, multi-replica deployments, and high availability
+database:
+  # Database type: sqlite or postgresdb
+  type: sqlite  # Change to 'postgresdb' to use PostgreSQL
+  
+  # PostgreSQL configuration (only used when type: postgresdb)
+  postgres:
+    # PostgreSQL host (service name or external hostname)
+    # Example: postgres-service.namespace.svc.cluster.local
+    host: ""  # <--- UPDATE: PostgreSQL hostname or service name
+    
+    # PostgreSQL port (default: 5432)
+    port: 5432
+    
+    # Database name
+    database: ""  # <--- UPDATE: Database name
+    
+    # Database user
+    user: ""  # <--- UPDATE: PostgreSQL username
+    
+    # Database password (use Kubernetes secret in production)
+    # For production, use passwordSecret instead of plain text
+    password: ""  # <--- UPDATE: PostgreSQL password (or use passwordSecret below)
+    
+    # Alternative: Use Kubernetes secret for password (recommended for production)
+    # Uncomment and configure if using secrets instead of plain text password:
+    # passwordSecret:
+    #   name: postgres-secret  # Name of the Kubernetes secret
+    #   key: password          # Key in the secret containing the password
+    
+    # SSL configuration (optional)
+    ssl:
+      # Enable SSL connection
+      enable: false
+      # Reject unauthorized certificates (recommended: true)
+      rejectUnauthorized: true
+  
+  # SQLite configuration (only used when type: sqlite)
+  sqlite:
+    # Vacuum SQLite database on startup to optimize performance
+    vacuumOnStartup: true
+
+# ----------------------------
 # Container Image Configuration
 # ----------------------------
+# Defines which Docker image to use and how to pull it.
+# GitHub Actions CI/CD workflow automatically updates repository and tag
+# when building and pushing images to Docker Hub.
 image:
-  # TEMPORARY: Using official n8n image until custom image is built
-  repository: nomad1111/n8n-custom
+  # Custom image built by GitHub Actions CI/CD pipeline
+  # Automatically updated by workflow when image is built and pushed
+  # ⚠️ CONFIGURATION REQUIRED: Replace YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME with your Docker Hub repository
+  # See CONFIGURATION.md for details
+  repository: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME
+  # Image tag - matches branch name (develop, uat, main)
+  # GitHub Actions builds and tags images based on branch
   tag: uat
+  # Image pull policy: Always, IfNotPresent, or Never
+  # Always: Always pull latest (recommended for CI/CD to get latest builds)
   pullPolicy: Always
-  
-  # Custom image configuration (commented until image is available)
   
   # Optional: Image pull secrets for Docker Hub authentication
   # Recommended to avoid Docker Hub rate limits
@@ -62,9 +117,14 @@ service:
 # ----------------------------
 # Persistent Storage Configuration
 # ----------------------------
+# Persistent storage for n8n data (workflows, credentials, database).
+# Data persists across pod restarts and deployments.
 persistence:
   enabled: true
-  storageClass: null
+  # Storage class - must match existing PVC (storageClass is immutable)
+  # Existing PVC was created with "standard", so we must keep it
+  # WARNING: Changing this value requires deleting and recreating the PVC
+  storageClass: "standard"
   accessMode: ReadWriteOnce
   size: 1Gi
   mountPath: /home/node/.n8n

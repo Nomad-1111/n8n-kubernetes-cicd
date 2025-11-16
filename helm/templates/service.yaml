@@ -32,6 +32,8 @@ spec:
   # Must match the labels on pods created by the deployment
   selector:
     # Required: matches deployment pod template label
+    # IMPORTANT: Must match deployment selector exactly
     app: n8n-api
-    # Standard Kubernetes labels for resource management
-    {{- include "n8n.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "n8n.name" . }}
+    app.kubernetes.io/part-of: n8n
+    # Note: app.kubernetes.io/instance excluded for consistency with deployment

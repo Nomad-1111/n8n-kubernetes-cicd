@@ -32,13 +32,62 @@ replicas: 1
 timezone: Australia/Sydney
 
 # ----------------------------
+# Database Configuration
+# ----------------------------
+# Database type: sqlite or postgresdb
+# SQLite: Simple, file-based (default, good for single-instance deployments)
+# PostgreSQL: Recommended for production, multi-replica deployments, and high availability
+database:
+  # Database type: sqlite or postgresdb
+  type: sqlite  # Change to 'postgresdb' to use PostgreSQL
+  
+  # PostgreSQL configuration (only used when type: postgresdb)
+  postgres:
+    # PostgreSQL host (service name or external hostname)
+    # Example: postgres-service.namespace.svc.cluster.local
+    host: ""  # <--- UPDATE: PostgreSQL hostname or service name
+    
+    # PostgreSQL port (default: 5432)
+    port: 5432
+    
+    # Database name
+    database: ""  # <--- UPDATE: Database name
+    
+    # Database user
+    user: ""  # <--- UPDATE: PostgreSQL username
+    
+    # Database password (use Kubernetes secret in production)
+    # For production, use passwordSecret instead of plain text
+    password: ""  # <--- UPDATE: PostgreSQL password (or use passwordSecret below)
+    
+    # Alternative: Use Kubernetes secret for password (recommended for production)
+    # Uncomment and configure if using secrets instead of plain text password:
+    # passwordSecret:
+    #   name: postgres-secret  # Name of the Kubernetes secret
+    #   key: password          # Key in the secret containing the password
+    
+    # SSL configuration (optional)
+    ssl:
+      # Enable SSL connection
+      enable: false
+      # Reject unauthorized certificates (recommended: true)
+      rejectUnauthorized: true
+  
+  # SQLite configuration (only used when type: sqlite)
+  sqlite:
+    # Vacuum SQLite database on startup to optimize performance
+    vacuumOnStartup: true
+
+# ----------------------------
 # Container Image Configuration
 # ----------------------------
 # Defines which Docker image to use and how to pull it.
 image:
   # Docker image repository (without tag)
   # Custom image built by GitHub Actions CI/CD pipeline
-  repository: nomad1111/n8n-custom
+  # ⚠️ CONFIGURATION REQUIRED: Replace YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME with your Docker Hub repository
+  # See CONFIGURATION.md for details
+  repository: YOUR-DOCKERHUB-USERNAME/YOUR-REPO-NAME
   # Image tag - matches branch name (develop, uat, main)
   # GitHub Actions builds and tags images based on branch
   tag: develop
@@ -103,9 +152,11 @@ service:
 persistence:
   # Enable/disable persistent volume creation
   enabled: true
-  # Storage class - null uses default, or specify custom storage class
-  # For local development (Docker Desktop), null typically uses local storage
-  storageClass: null
+  # Storage class - must match existing PVC (storageClass is immutable)
+  # Existing PVC was created with "standard", so we must keep it
+  # WARNING: Changing this value requires deleting and recreating the PVC
+  # For local development (Docker Desktop), "standard" is typically the default
+  storageClass: "standard"
   # Access mode: ReadWriteOnce, ReadOnlyMany, or ReadWriteMany
   # ReadWriteOnce: Single node read-write (most common)
   accessMode: ReadWriteOnce

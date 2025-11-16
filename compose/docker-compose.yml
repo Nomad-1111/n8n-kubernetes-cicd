@@ -6,10 +6,43 @@ services:
       - "5678:5678"
     environment:
       - GENERIC_TIMEZONE=Australia/Sydney
+      # Database configuration
+      # Default: SQLite (no additional configuration needed)
+      # To use PostgreSQL, uncomment and configure the following:
+      # - DB_TYPE=postgresdb
+      # - DB_POSTGRESDB_HOST=postgres
+      # - DB_POSTGRESDB_PORT=5432
+      # - DB_POSTGRESDB_DATABASE=n8n
+      # - DB_POSTGRESDB_USER=n8n
+      # - DB_POSTGRESDB_PASSWORD=n8n_password
+      # - DB_POSTGRESDB_SSL_ENABLE=false
     restart: unless-stopped
     volumes:
       - n8n_data:/home/node/.n8n
+    # Uncomment to add PostgreSQL service dependency:
+    # depends_on:
+    #   - postgres
+    # networks:
+    #   - n8n-network
+
+  # Uncomment to add PostgreSQL service:
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     - POSTGRES_DB=n8n
+  #     - POSTGRES_USER=n8n
+  #     - POSTGRES_PASSWORD=n8n_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - n8n-network
+  #   ports:
+  #     - "5432:5432"  # Optional: expose for external access
 
 volumes:
   n8n_data:
+  # postgres_data:  # Uncomment if using PostgreSQL
+
+# networks:
+#   n8n-network:  # Uncomment if using PostgreSQL
 # --- IGNORE ---
